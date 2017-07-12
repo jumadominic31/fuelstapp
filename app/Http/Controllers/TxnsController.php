@@ -74,7 +74,7 @@ class TxnsController extends Controller
             $txn->paymethod = $request->input('paymethod');
             $txn->save();
             
-            return response()->json(['txn' => $txn, 'user' => $user], 201);
+            return response()->json(['txn' => $txn], 201);
         }
     }
 
@@ -98,10 +98,13 @@ class TxnsController extends Controller
         /*$rate = Rate::find($id);
         return response()->json($rate);*/
         $txn = DB::table('txns')
-                     ->select('userid', DB::raw('sum(amount) as total_sales'))
+                     ->select('userid','fueltype','paymethod', DB::raw('sum(volume) as total_vol'), DB::raw('sum(amount) as total_sales'))
                      ->where('userid', '=', $userid)
                      ->where(DB::raw('date(created_at)'), '=', $date)
                      ->groupBy('userid')
+                     ->groupBy('fueltype')
+                     ->groupBy('paymethod')
+                     ->groupBy('volume')
                      ->get();
         return response()->json($txn);
     }

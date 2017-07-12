@@ -72,13 +72,13 @@ class RatesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($fueltype, $rate_date)
+    public function show( $rate_date)
     {
         /*$rate = Rate::find($id);
         return response()->json($rate);*/
         $rate = DB::table('rates')
                      ->select(DB::raw('*'))
-                     ->where('fueltype', '=', $fueltype)
+                     //->where('fueltype', '=', $fueltype)
                      ->where('rate_date', '=', $rate_date)
                      ->get();
         return response()->json($rate);

@@ -15,13 +15,17 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('api/rates/{fueltype}/{rate_date}', [
+Route::get('api/rates/{rate_date}', [
     'middleware' => 'auth.jwt', 
     'uses' => 'RatesController@show']);
 
 Route::get('api/txns/{userid}/{date}', [
     'middleware' => 'auth.jwt', 
     'uses' => 'TxnsController@dailysumm']);
+
+Route::get('api/user/{username}', [
+    'middleware' => 'auth.jwt', 
+    'uses' => 'UsersController@getuserdetails']);
 
 Route::group(['middleware' => 'auth.jwt'], function () {
     Route::resource('api/txns', 'TxnsController');

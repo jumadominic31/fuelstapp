@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User;
 use Validator;
@@ -58,8 +60,19 @@ class UsersController extends Controller
                 'error' => 'Could not create token!'
             ], 500);
         }
+        
         return response()->json([
             'token' => $token
         ], 200);
+    }
+
+    public function getuserdetails($username)
+    {
+        $userdetails = DB::table('users')
+            ->join('stations', 'users.stationid', '=', 'stations.id')
+            ->select('users.id', 'users.username', 'users.stationid', 'stations.station' )
+            ->where('users.username', '=', $username)
+            ->get();
+        return response()->json($userdetails);
     }
 }
