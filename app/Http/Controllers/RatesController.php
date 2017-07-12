@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Rate;
 use Validator;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use JWTAuth;
 
 class RatesController extends Controller
 {
@@ -44,6 +46,7 @@ class RatesController extends Controller
             'fueltype'  => 'required',
             'buyprice'  => 'required',
             'sellprice' => 'required',
+            'updated_by' => 'required',
         ]);
         
         if ($validator->fails()){
@@ -55,9 +58,11 @@ class RatesController extends Controller
             $rate->fueltype  = $request->input('fueltype');
             $rate->buyprice  = $request->input('buyprice');
             $rate->sellprice = $request->input('sellprice');
+            $rate->updated_by = $request->input('updated_by');
             $rate->save();
             
             return response()->json($rate);
+            //return response()->json(["rate" => $rate], 201);
         }
     }
 

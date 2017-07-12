@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Txn;
 use Validator;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use JWTAuth;
 
 class TxnsController extends Controller
 {
@@ -18,7 +20,7 @@ class TxnsController extends Controller
     public function index()
     {
         $txns = Txn::all();
-        return response()->json($txns);
+        return response()->json(['status' => 'success' , 'txns' => $txns]);
     }
 
     /**
@@ -39,9 +41,10 @@ class TxnsController extends Controller
      */
     public function store(Request $request)
     {
+        $user = JWTAuth::parseToken()->toUser();
         $validator = Validator::make(($request->all()), [
-            'userid'    => 'required',
-            'stationid' => 'required',
+            //'userid'    => 'required',
+            //'stationid' => 'required',
             'vehregno'  => 'required',
             'amount'    => 'required',
             'volume'    => 'required',
@@ -58,9 +61,11 @@ class TxnsController extends Controller
             $lasttxnid      = $txnid->orderBy('id', 'desc')->pluck('id')->first();
             $newtxnid       = $lasttxnid + 1;
             $txn = new Txn;
-            $txn->userid    = $request->input('userid');
+            //$txn->userid    = $request->input('userid');
+            $txn->userid    = $user->id;
             $txn->receiptno = date('y').date('m').date('d').$newtxnid;
-            $txn->stationid = $request->input('stationid');
+            //$txn->stationid = $request->input('stationid');
+            $txn->stationid = $user->stationid;
             $txn->vehregno  = $request->input('vehregno');
             $txn->amount    = $request->input('amount');
             $txn->volume    = $request->input('volume');
@@ -69,7 +74,7 @@ class TxnsController extends Controller
             $txn->paymethod = $request->input('paymethod');
             $txn->save();
             
-            return response()->json($txn);
+            return response()->json(['txn' => $txn, 'user' => $user], 201);
         }
     }
 
@@ -82,7 +87,10 @@ class TxnsController extends Controller
     public function show($id)
     {
         $txn = Txn::find($id);
-        return response()->json($txn);
+        if (!$txn) {
+            return response()->json(['message' => 'Txn not found', 'status' => 'failure'], 404);
+        }
+        return response()->json(['txn' => $txn, 'status' => 'success'], 200);
     }
     
     public function dailysumm($userid, $date)
