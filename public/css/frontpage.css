@@ -1,0 +1,39 @@
+body{
+    background-image: url('../images/front_page.jpg');
+    background-size: cover;
+    color: white;
+    background-repeat: no-repeat;
+    background-position: center; 
+    background-attachment: fixed;
+    font-family: 'Raleway', sans-serif;
+}
+form{
+    background: rgb(3, 1, 45, 0.58);
+    color: white;
+    padding: 40px;
+    margin-top: 200px;
+    padding-bottom: 60px;
+    box-shadow: 10px 10px 5px rgba(6, 1, 1, 0.43)
+}
+h1{
+    text-align: center;
+}
+.btn{
+    width: 100%;
+    border-radius: 0px;
+
+}
+.form-control{
+    border-radius: 0px;
+    background-color: rgba(23, 3, 3, 0.48);
+    color: white;
+    border-radius:1px solid #291212
+}
+
+#footer {
+  background: #333333;
+  color: #ffffff;
+  text-align: center;
+  padding: 30px;
+  margin-top: 25px;
+}
