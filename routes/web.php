@@ -30,11 +30,14 @@ Route::group(['middleware' => 'auth.jwt'], function () {
     Route::post('api/user/{username}/changepassword', [
         'uses' => 'UsersController@changePassword']);
 
-    Route::get('api/pump/fuel/{fueltype}/{attendantid}', [
+    Route::get('api/pump/fuel/{attendantid}', [
         'uses' => 'PumpsController@fuelattendantpumps']);
 
     Route::get('api/pump/{attendantid}', [
         'uses' => 'PumpsController@attendantpumps']);
+
+    Route::get('api/getvehicles', [
+        'uses' => 'VehiclesController@getvehicles']);
 });
 
 //Route::group(['middleware' => 'guest'], function () {
@@ -143,11 +146,11 @@ Route::group(['middleware' => 'auth'] , function () {
 		
     Route::get('/txns', 'TxnsController@index')->name('txns.index');
 
-    Route::post('/txns', 'TxnsController@index')->name('txns.filter');
+    // Route::post('/txns', 'TxnsController@index')->name('txns.filter');
 
     Route::get('/txns/salessumm', 'TxnsController@salessumm')->name('txns.salessumm.index');
         
-    Route::post('/txns/salessumm', 'TxnsController@salessumm')->name('txns.salessumm.filter');
+    // Route::post('/txns/salessumm', 'TxnsController@salessumm')->name('txns.salessumm.filter');
 
     //Eodays
     Route::get('/eodays/downloadExcel/{type}', [
@@ -200,7 +203,9 @@ Route::group(['middleware' => 'auth'] , function () {
 
     Route::post('/reports/monthly', 'EodaysController@monthlyrpt')->name('monthly.post');
    
-    Route::get('/reports/monthly', 'EodaysController@monthlyrpt')->name('monthly.get');		
+    Route::get('/reports/monthly', 'EodaysController@monthlyrpt')->name('monthly.get');
+
+    Route::get('/reports/vehicles', 'EodaysController@vehiclesrpt')->name('reports.vehicles');		
   
     //PDF
     Route::get('/pdf/stations', 'PDFController@index');

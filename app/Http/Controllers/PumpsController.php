@@ -18,10 +18,10 @@ class PumpsController extends Controller
         return View('pumps.index')->with('pumps', $pumps);
     }
 
-    public function fuelattendantpumps($fueltype, $attendantid){
+    public function fuelattendantpumps($attendantid){
         $companyid = Auth::user()->companyid;
         $stationid = User::where('companyid', '=', $companyid)->where('id','=',$attendantid)->pluck('stationid');
-        $pump = Pump::where('companyid', '=', $companyid)->where('stationid','=',$stationid)->where('fueltype', '=', $fueltype)->pluck('pumpname','id');
+        $pump = Pump::select('id', 'pumpname', 'fueltype')->where('companyid', '=', $companyid)->where('stationid','=',$stationid)->get();
         return response()->json($pump);
     }
 
@@ -97,8 +97,8 @@ class PumpsController extends Controller
     {
         $companyid = Auth::user()->companyid;
         $pump = Pump::find($id);
-        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id');
-        $users = User::where('companyid', '=', $companyid)->where('usertype','=','attendant')->pluck('username', 'id');
+        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id')->toArray();
+        $users = User::where('companyid', '=', $companyid)->where('usertype','=','attendant')->pluck('username', 'id')->toArray();
         return view('pumps.edit', ['pump'=> $pump, 'stations' => $stations, 'users' => $users]);
     }
 

@@ -13,7 +13,7 @@
             <!-- Branding Image -->
             @if(empty(Session::get('fuelstapp.companylogo'))) 
                 <a class="navbar-brand" 
-                    href="{{ url('/dashboard') }}">
+                    href="{{ route('dashboard.index') }}">
                     {{session('fuelstapp.companyname') }}
                 </a>
             @else
@@ -32,7 +32,7 @@
 
             <ul class="nav navbar-nav">
                 
-                <li><a href="{{ url('/dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
                 <li><a href="{{ route('txns.index') }}">Transactions</a></li>
                 <li><a href="{{ route('txns.salessumm.index') }}">Sales Summary</a></li>
                 @if(Auth::user()->usertype == 'admin')
@@ -56,6 +56,7 @@
                         @endif
                         <li><a href="{{ route('eodays.index') }}">Daily Report List</a></li>
                         <li><a href="{{ route('monthly.get') }}">Monthly Report List</a></li>
+                        <li><a href="{{ route('reports.vehicles') }}">Vehicles Fueling Report</a></li>
                         <li><a href="{{ route('loyalty.index') }}">Loyalty Program</a></li>
                     </ul>
                 </li>

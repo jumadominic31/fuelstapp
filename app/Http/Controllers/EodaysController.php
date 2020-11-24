@@ -9,11 +9,13 @@ use App\Eoday;
 use App\Reading;
 use App\Rate;
 use App\Station;
+use App\Txn;
 use Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use JWTAuth;
 use Auth;
 use Excel;
+use Carbon\Carbon;
 
 class EodaysController extends Controller
 {
@@ -37,6 +39,56 @@ class EodaysController extends Controller
         $othertxns = DB::table('othertxns')->where('companyid', '=', $companyid)->where('eoday_id','=', $id)->get();
         $id_readings =  DB::table('readings')->where('companyid', '=', $companyid)->where('eoday_id','=', $id)->get();
         return view('eodays.show',['eoday'=> $eoday, 'othertxns' => $othertxns, 'id_readings' => $id_readings]);
+    }
+
+    public function vehiclesrpt(Request $request){
+
+        $companyid = Auth::user()->companyid;
+        $dt = Carbon::now();
+
+        $monthdt = $request->input('month');
+
+        if ($monthdt != NULL)
+        {
+            $month = Carbon::parse($monthdt);
+            $daysinmonth = $month->daysInMonth;
+        }
+        else
+        {
+            $month = $dt->format('Y-m');
+            $month = Carbon::parse($month);
+            $monthdt = $dt->format('Y-m');
+            $daysinmonth = $dt->daysInMonth;   
+        }
+
+        $startmon = $month->startOfMonth();
+        $startmondt = $startmon->format('Y-m-d');
+
+        $statement = "owners.own_num, owners.fullname, txns.vehregno, sum(if(date(txns.created_at) = '$startmondt', txns.volume, 0)) as '$startmondt'";
+        for ($i = 1; $i < $daysinmonth; $i++) {
+            $stdt = $startmon->addDays(1);
+            $stdtformatted = $stdt->format('Y-m-d');
+            $statement = $statement.", sum(if(date(txns.created_at) = '$stdtformatted', txns.volume, 0)) as '$stdtformatted'";
+        }
+        $statement = $statement . ", sum(txns.volume) as 'total'";
+
+        $vehreport = Txn::join('owners', 'txns.ownerid', '=', 'owners.id')->select(DB::raw("$statement"))->where(DB::raw('DATE_FORMAT(txns.created_at, "%Y-%m")'), '=', "$monthdt")->where('txns.ownerid', '!=', '0')->where('txns.companyid', '=', '3')->groupBy('txns.vehregno')->orderBy('txns.ownerid', 'asc')->get();
+
+        if ($request->submitBtn == 'DownloadExcel') {
+            $vehreport = $vehreport->toArray();
+            return Excel::create('vehreport_details', function($excel) use ($vehreport) {
+                $excel->sheet('vehreport', function($sheet) use ($vehreport)
+                {
+                    $sheet->fromArray($vehreport, null, 'A1', true);
+                    $sheet->prependRow(array('NSL Sacco'));
+                    // $sheet->row(1, array('NSL Sacco'));
+                    // $sheet->rows(array(array('test1', 'test2'),array('test3', 'test4')));
+                    $sheet->setFreeze('D3');
+                });
+            })->download('xlsx');
+        } 
+
+        return view('reports.vehicles', ['daysinmonth' => $daysinmonth, 'startmon' => $startmon,'startmondt' => $startmondt, 'vehreport' => $vehreport]);
     }
 
     public function monthlyrpt(Request $request){

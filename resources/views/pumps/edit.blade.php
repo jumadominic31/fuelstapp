@@ -15,17 +15,13 @@
                     {{Form::label('fueltype', 'Fuel Type')}}
                     {{Form::select('fueltype', ['Diesel' => 'Diesel', 'Petrol' => 'Petrol'], $pump->fueltype, ['class' => 'form-control'])}}
                 </div>
-                <?php
-                    $stations[0] = 'Select Station';
-                    //ksort($stations);
-                ?>
                 <div class="form-group">
                     {{Form::label('stationid', 'Station ID')}}
-                    {{Form::select('stationid', $stations, null, ['class' => 'form-control'])}}
+                    {{Form::select('stationid', ['0' => ''] + $stations, $pump->stationid, ['class' => 'form-control'])}}
                 </div>
                 <div class="form-group">
-                    {{Form::label('attendantid', 'Attendant ID')}}
-                    {{Form::select('attendantid',[] ,null, ['class' => 'form-control', 'id' => 'attendantid'])}}   
+                    {{Form::label('attendantid', 'Attendant ID (Choose Station First)')}}
+                    {{Form::select('attendantid', ['' => ''] + $users, $pump->attendantid, ['class' => 'form-control', 'id' => 'attendantid'])}}   
                 </div>
                 {{Form::hidden('_method', 'PUT')}}
                 {{Form::submit('Submit')}}
@@ -39,13 +35,13 @@
     $('#stationid').on('change',function(e){
         var stationid = e.target.value;
 
-        $.get('/fuelstapp/stationid/attendant/'+stationid, function(data){
+        $.get('/stationid/attendant/'+stationid, function(data){
             $('#attendantid').empty();
             $.each(data, function(index, attendantObj){
                 $('#attendantid').append('<option value="'+attendantObj.id+'">'+attendantObj.username+'</option>');
             });
         });
     });
-
+//
 </script>
 @endsection

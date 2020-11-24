@@ -23,7 +23,7 @@
         </div>
         <div class="form-group">
             {{Form::label('fueltype', 'Fuel Type')}}
-            {{Form::select('fueltype', ['Diesel' => 'Diesel', 'Petrol' => 'Petrol'], null, ['class' => 'form-control', 'placeholder' => 'Choose fuel type'])}}
+            {{Form::select('fueltype', ['Diesel' => 'Diesel', 'Petrol' => 'Petrol', 'Kerosene' => 'Kerosene'], null, ['class' => 'form-control', 'placeholder' => 'Choose fuel type'])}}
         </div>
         <div class="form-group">
             {{Form::label('sellprice', 'Selling Price')}}

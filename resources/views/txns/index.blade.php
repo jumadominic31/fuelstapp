@@ -3,11 +3,11 @@
 @section('content')
 <h1> Transactions </h1>
 
-<a class="pull-right btn btn-default" href="/txns">Reset</a>
+<a class="pull-right btn btn-default" href="{{ route('txns.index') }}">Reset</a>
 <h3> Filter </h3>
 <input type="checkbox" autocomplete="off" onchange="checkfilter(this.checked);"/>
 <div id="filteroptions" style="display: none ;">
-    {!! Form::open(['action' => 'TxnsController@index', 'method' => 'POST', 'enctype' => 'multipart/form-data']) !!}
+    {!! Form::open(['action' => 'TxnsController@index', 'method' => 'GET', 'enctype' => 'multipart/form-data']) !!}
     <table class="table">
       <tbody>
       <tr>
@@ -87,20 +87,20 @@
         
         <td>{{$txn['receiptno']}}</td>
         <td>{{$txn['vehregno']}}</td>
-        <td>{{$txn['amount']}}</td>
+        <td>{{number_format($txn['amount'], 2, '.', ',')}}</td>
         <td>{{$txn['volume']}}</td>
-        <td>{{$txn['sellprice']}}</td>
+        <td>{{number_format($txn['sellprice'], 2, '.', ',')}}</td>
         <td>{{$txn['fueltype']}}</td>
         <td>{{$txn['paymethod']}}</td>
         <td>{{$txn['created_at']}}</td>
         <td>{{$txn['user']['fullname']}}</td>
         <td>{{$txn['station']['station']}}</td>
-        <td><a class="btn btn-default" href="/txns/{{$txn->id}}/edit">Edit</a></td>
+        <td><a class="btn btn-default" href="{{ route('txns.edit', ['txn' => $txn->id ]) }}">Edit</a></td>
 
         </tr>
         @endforeach
         </table>
-        
+        {{ $txns->appends(request()->input())->links() }}
         
     @else
       <p>No txns To Display</p>

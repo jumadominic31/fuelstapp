@@ -22,7 +22,7 @@
             {{Form::select('stationid', ['' => ''] + $stations, null, ['class' => 'form-control', 'id' => 'stationid'])}}
         </div>
         <div class="form-group">
-            {{Form::label('attendantid', 'Attendant ID')}}
+            {{Form::label('attendantid', 'Attendant ID (Choose Station First)')}}
             {{Form::select('attendantid',[] ,null, ['class' => 'form-control', 'id' => 'attendantid'])}}   
         </div>
         {{Form::submit('Submit', ['class'=>'btn btn-primary'])}}

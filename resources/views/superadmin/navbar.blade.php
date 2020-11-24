@@ -12,7 +12,7 @@
 
             <!-- Branding Image -->
             <a class="navbar-brand" 
-                href="{{ url('/superadmin') }}">
+                href="{{ route('superadmin.index') }}">
                 {{ config('app.name', 'Fuel Station App') }}
             </a>
         </div>
@@ -25,7 +25,7 @@
 
             <ul class="nav navbar-nav">
                 
-                <li><a href="{{ url('/superadmin') }}">Dashboard</a></li>
+                <li><a href="{{ route('superadmin.index') }}">Dashboard</a></li>
                 <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Company<span class="caret"></span></a>
                     <ul class="dropdown-menu">

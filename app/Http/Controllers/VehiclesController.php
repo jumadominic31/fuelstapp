@@ -29,8 +29,8 @@ class VehiclesController extends Controller
             $count = $count->where('num_plate','like','%'.$num_plate.'%');
         }
         if ($owner_id != NULL){
-            $vehicles= $vehicles->where('owner_id','like','%'.$owner_id.'%');
-            $count = $count->where('owner_id','like','%'.$owner_id.'%');
+            $vehicles= $vehicles->where('owner_id','=', $owner_id);
+            $count = $count->where('owner_id','=', $owner_id);
         }
 
         $vehicles = $vehicles->paginate(10);
@@ -111,5 +111,11 @@ class VehiclesController extends Controller
     public function destroy($id)
     {
 
+    }
+
+    public function getvehicles(){
+        $companyid = Auth::user()->companyid;
+        $vehicles = Vehicle::select('num_plate')->where('companyid', '=', $companyid)->pluck('num_plate');
+        return response()->json($vehicles);
     }
 }

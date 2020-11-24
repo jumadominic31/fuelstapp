@@ -30,6 +30,7 @@ class TxnsController extends Controller
         $stations = Station::where('companyid', '=', $companyid)->pluck('station', 'id')->all();
         $attendants = User::where('usertype','=','attendant')->where('companyid', '=', $companyid)->pluck('fullname', 'id')->all();
         $curr_date = date('Y-m-d');
+        $last_10_date = date('Y-m-d', strtotime('-10 days'));
         $stationid = Auth::user()->stationid;
         $vehregno = $request->input('vehregno');
         $receiptno = $request->input('receiptno');
@@ -39,105 +40,59 @@ class TxnsController extends Controller
         $paymethod = $request->input('paymethod');
         $stationsel = $request->input('stationsel');
         $attendantid = $request->input('attendantid');
+        
+        $txns = Txn::where('companyid', '=', $companyid);
+        $tot_coll = Txn::select('companyid', DB::raw('sum(amount) as tot_amount'))->where('companyid', '=', $companyid);
         if (Auth::user()->usertype == 'stationadmin'){
-            if ($request->isMethod('POST')){
-                $txns = Txn::where('companyid', '=', $companyid)->where('stationid' , '=' , $stationid);
-                $tot_coll = Txn::select('companyid', DB::raw('sum(amount) as tot_amount'))->where('companyid', '=', $companyid)->where('stationid' , '=' , $stationid);
-                if ($vehregno != NULL){
-                    $txns = $txns->where('vehregno','like','%'.$vehregno.'%');
-                    $tot_coll = $tot_coll->where('vehregno','like','%'.$vehregno.'%');
-                }
-                if ($receiptno != NULL){
-                    $txns = $txns->where('receiptno','like','%'.$receiptno.'%');
-                    $tot_coll = $tot_coll->where('receiptno','like','%'.$receiptno.'%');
-                }
-                if ($fueltype != NULL){
-                    $txns = $txns->where('fueltype','=', $fueltype);
-                    $tot_coll = $tot_coll->where('fueltype','=', $fueltype);
-                }
-                if ($paymethod != NULL){
-                    $txns = $txns->where('paymethod','=', $paymethod);
-                    $tot_coll = $tot_coll->where('paymethod','=', $paymethod);
-                }
-                if ($attendantid != NULL){
-                    $txns = $txns->where('userid','=', $attendantid);
-                    $tot_coll = $tot_coll->where('userid','=', $attendantid);
-                }
-                /*if ($stationsel != NULL){
-                    $txns = $txns->where('stationid','=', $stationsel);
-                    $tot_coll = $tot_coll->where('stationid','=', $stationsel);
-                }*/
-                if ($first_date != NULL){
-                    if ($last_date != NULL){
-                        $txns = $txns->where(DB::raw('date(txns.created_at)'), '<=', $last_date)->where(DB::raw('date(txns.created_at)'),'>=',$first_date);
-                        $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'), '<=', $last_date)->where(DB::raw('date(txns.created_at)'),'>=',$first_date);
-                    } 
-                    else{
-                        $txns = $txns->where(DB::raw('date(txns.created_at)'), '=', $first_date);
-                        $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'), '=', $first_date);
-                    }
-                }
-                $txns = $txns->orderBy('created_at','desc')->limit(50)->get();
-                $tot_coll = $tot_coll->groupBy('companyid')->pluck('tot_amount')->first();
-                if ($request->submitBtn == 'CreatePDF') {
-                    $pdf = PDF::loadView('pdf.txns', ['txns' => $txns, 'tot_coll' => $tot_coll, 'company_details' => $company_details, 'curr_date' => $curr_date]);
-                    $pdf->setPaper('A4', 'landscape');
-                    return $pdf->stream('txns.pdf');
-                } 
-                return View('txns.index', ['txns' => $txns, 'vehregno' => $vehregno, 'receiptno' => $receiptno, 'attendants' => $attendants, 'stations' => $stations ]);
-            }
-            $txns = Txn::where('companyid', '=', $companyid)->where('stationid' , '=' , $stationid)->orderBy('created_at','desc')->limit(50)->get();
-
-            return View('txns.index', ['txns' => $txns, 'vehregno' => $vehregno, 'receiptno' => $receiptno, 'attendants' => $attendants, 'stations' => $stations ]);
+            $txns = $txns->where('stationid' , '=' , $stationid);
+            $tot_coll = $tot_coll->where('stationid' , '=' , $stationid);
         }
-
-        if ($request->isMethod('POST')){
-            $txns = Txn::where('companyid', '=', $companyid);
-            $tot_coll = Txn::select('companyid', DB::raw('sum(amount) as tot_amount'))->where('companyid', '=', $companyid);
-            if ($vehregno != NULL){
-                $txns = $txns->where('vehregno','like','%'.$vehregno.'%');
-                $tot_coll = $tot_coll->where('vehregno','like','%'.$vehregno.'%');
-            }
-            if ($receiptno != NULL){
-                $txns = $txns->where('receiptno','like','%'.$receiptno.'%');
-                $tot_coll = $tot_coll->where('receiptno','like','%'.$receiptno.'%');
-            }
-            if ($fueltype != NULL){
-                $txns = $txns->where('fueltype','=', $fueltype);
-                $tot_coll = $tot_coll->where('fueltype','=', $fueltype);
-            }
-            if ($paymethod != NULL){
-                $txns = $txns->where('paymethod','=', $paymethod);
-                $tot_coll = $tot_coll->where('paymethod','=', $paymethod);
-            }
-            if ($attendantid != NULL){
-                $txns = $txns->where('userid','=', $attendantid);
-                $tot_coll = $tot_coll->where('userid','=', $attendantid);
-            }
-            if ($stationsel != NULL){
-                $txns = $txns->where('stationid','=', $stationsel);
-                $tot_coll = $tot_coll->where('stationid','=', $stationsel);
-            }
-            if ($first_date != NULL){
-                if ($last_date != NULL){
-                    $txns = $txns->where(DB::raw('date(txns.created_at)'), '<=', $last_date)->where(DB::raw('date(txns.created_at)'),'>=',$first_date);
-                    $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'), '<=', $last_date)->where(DB::raw('date(txns.created_at)'),'>=',$first_date);
-                } 
-                else{
-                    $txns = $txns->where(DB::raw('date(txns.created_at)'), '=', $first_date);
-                    $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'), '=', $first_date);
-                }
-            }
-            $txns = $txns->orderBy('created_at','desc')->limit(50)->get();
-            $tot_coll = $tot_coll->groupBy('companyid')->pluck('tot_amount')->first();
-            if ($request->submitBtn == 'CreatePDF') {
-                $pdf = PDF::loadView('pdf.txns', ['txns' => $txns, 'tot_coll' => $tot_coll, 'company_details' => $company_details, 'curr_date' => $curr_date]);
-                $pdf->setPaper('A4', 'landscape');
-                return $pdf->stream('txns.pdf');
-            }
-            return View('txns.index', ['txns' => $txns, 'vehregno' => $vehregno, 'receiptno' => $receiptno, 'attendants' => $attendants, 'stations' => $stations ]);
+        if ($vehregno != NULL){
+            $txns = $txns->where('vehregno','like','%'.$vehregno.'%');
+            $tot_coll = $tot_coll->where('vehregno','like','%'.$vehregno.'%');
         }
-        $txns = Txn::where('companyid', '=', $companyid)->orderBy('created_at','desc')->limit(50)->get();
+        if ($receiptno != NULL){
+            $txns = $txns->where('receiptno','like','%'.$receiptno.'%');
+            $tot_coll = $tot_coll->where('receiptno','like','%'.$receiptno.'%');
+        }
+        if ($fueltype != NULL){
+            $txns = $txns->where('fueltype','=', $fueltype);
+            $tot_coll = $tot_coll->where('fueltype','=', $fueltype);
+        }
+        if ($paymethod != NULL){
+            $txns = $txns->where('paymethod','=', $paymethod);
+            $tot_coll = $tot_coll->where('paymethod','=', $paymethod);
+        }
+        if ($attendantid != NULL){
+            $txns = $txns->where('userid','=', $attendantid);
+            $tot_coll = $tot_coll->where('userid','=', $attendantid);
+        }
+        if ($stationsel != NULL){
+            $txns = $txns->where('stationid','=', $stationsel);
+            $tot_coll = $tot_coll->where('stationid','=', $stationsel);
+        }
+        if ($first_date != NULL){
+            if ($last_date != NULL){
+                $txns = $txns->where(DB::raw('date(txns.created_at)'), '<=', $last_date)->where(DB::raw('date(txns.created_at)'),'>=',$first_date);
+                $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'), '<=', $last_date)->where(DB::raw('date(txns.created_at)'),'>=',$first_date);
+            } 
+            else{
+                $txns = $txns->where(DB::raw('date(txns.created_at)'), '=', $first_date);
+                $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'), '=', $first_date);
+            }
+        }
+        else{
+            $txns = $txns->where(DB::raw('date(txns.created_at)'),'>=',$last_10_date);
+            $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'),'>=',$last_10_date);
+        }
+        $txns = $txns->orderBy('created_at','desc')->limit(300)->paginate(30);
+        $tot_coll = $tot_coll->groupBy('companyid')->pluck('tot_amount')->first();
+        if ($request->submitBtn == 'CreatePDF') {
+            $pdf = PDF::loadView('pdf.txns', ['txns' => $txns, 'tot_coll' => $tot_coll, 'company_details' => $company_details, 'curr_date' => $curr_date]);
+            $pdf->setPaper('A4', 'landscape');
+            return $pdf->stream('txns.pdf');
+        } 
+
         return View('txns.index', ['txns' => $txns, 'vehregno' => $vehregno, 'receiptno' => $receiptno, 'attendants' => $attendants, 'stations' => $stations]);
     }
 
@@ -239,11 +194,20 @@ class TxnsController extends Controller
             'paymethod' => 'required',
             'pumpid'    => 'required',
         ]);
+
+        $stationid = $user->stationid;
+        $station = Station::select('station')->where('id', '=', $stationid)->pluck('station')->first();
+        $vehregno = $request->input('vehregno');
         
         if ($validator->fails()){
             $response = array('response' => $validator->messages(), 'success' => false);
             return $response;
         } else {
+            $owner_id = Vehicle::join('owners', 'vehicles.owner_id', '=', 'owners.id')->select('owners.id')->where('vehicles.companyid', '=', $companyid)->where('vehicles.num_plate', '=', $vehregno)->pluck('owners.id')->first();
+            $owner_phone = Vehicle::join('owners', 'vehicles.owner_id', '=', 'owners.id')->select('owners.phone')->where('vehicles.companyid', '=', $companyid)->where('vehicles.num_plate', '=', $vehregno)->pluck('owners.phone')->first();
+            if ($owner_id == NULL){
+                $owner_id = 0;
+            }
             $txnid          = new Txn();
             $lasttxnid      = $txnid->orderBy('id', 'desc')->pluck('id')->first();
             $newtxnid       = $lasttxnid + 1;
@@ -254,7 +218,8 @@ class TxnsController extends Controller
             //$txn->stationid = $request->input('stationid');
             $txn->stationid = $user->stationid;
             $txn->companyid = $companyid;
-            $txn->vehregno  = $request->input('vehregno');
+            $txn->vehregno  = $vehregno;
+            $txn->ownerid   = $owner_id;
             $txn->amount    = $request->input('amount');
             $txn->volume    = $request->input('volume');
             $txn->sellprice = $request->input('sellprice');
@@ -263,28 +228,30 @@ class TxnsController extends Controller
             $txn->pumpid    = $request->input('pumpid');
             $txn->save();
 
-            $owner_phone = Vehicle::join('owners', 'vehicles.owner_id', '=', 'owners.id')->select('owners.phone')->where('vehicles.companyid', '=', $companyid)->where('vehicles.num_plate', '=', $txn->vehregno)->pluck('owners.phone')->first();
-
-            // Send transaction SMS
-            if ($owner_phone != NULL)
+            if ($companyid == '3')
             {
-                $atgusername   = env('ATGUSERNAME');
-                $atgapikey     = env('ATGAPIKEY');
-                $senderid   = env('ATGSENDERID');
-                $recipients = '+'.$owner_phone;
-                $message    = "Txn details\nVehicle: ".$txn->vehregno."\nAmount: ".$txn->amount;
-                $gateway    = new AfricasTalkingGateway($atgusername, $atgapikey);
-                try 
-                { 
-                  $send_results = $gateway->sendMessage($recipients, $message, $senderid);
-                }
-                catch ( AfricasTalkingGatewayException $e )
+                // $owner_phone = Vehicle::join('owners', 'vehicles.owner_id', '=', 'owners.id')->select('owners.phone')->where('vehicles.companyid', '=', $companyid)->where('vehicles.num_plate', '=', $txn->vehregno)->pluck('owners.phone')->first();
+
+                // Send transaction SMS
+                if ($owner_phone != NULL)
                 {
-                  echo 'Encountered an error while sending: '.$e->getMessage();
+                    $atgusername   = env('ATGUSERNAME');
+                    $atgapikey     = env('ATGAPIKEY');
+                    $senderid   = env('ATGSENDERID');
+                    $recipients = '+'.$owner_phone;
+                    $message    = "Txn details\nStation: ".$station."\nReceipt#: ".$txn->receiptno."\nVehicle: ".$txn->vehregno."\nAmount: ".$txn->amount."\n Vol: ".$txn->volume;
+                    $gateway    = new AfricasTalkingGateway($atgusername, $atgapikey);
+                    try 
+                    { 
+                      $send_results = $gateway->sendMessage($recipients, $message, $senderid);
+                    }
+                    catch ( AfricasTalkingGatewayException $e )
+                    {
+                      echo 'Encountered an error while sending: '.$e->getMessage();
+                    }
                 }
             }
-            
-            return response()->json(['txn' => $txn], 201);
+            return response()->json(['txn' => $txn, 'status' => 'success'], 201);
         }
     }
 
@@ -319,46 +286,51 @@ class TxnsController extends Controller
     public function salessumm(Request $request)
     {
         $companyid = Auth::user()->companyid;
-        //$summ_date = date('y').'-'.date('m').'-'.date('d');
         $curr_datetime = date('Y-m-d H:i:s');
         $stationid = Auth::user()->stationid;
-        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id');
-        $lasteod_datetime = Eoday::orderBy('id', 'desc')->where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->pluck('created_at')->first();
+        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id')->toArray();
 
-        if ($request->isMethod('POST')){
-            
-            $this->validate($request, [
-                'summ_date' => 'required'
-            ]);
+        $summ_date_1 = $request->input('summ_date_1');
+        $summ_date_2 = $request->input('summ_date_2');
+        $station = $request->input('station');
+        $fueltype = $request->input('fueltype');
 
-            $summ_date = $request->input('summ_date');
-            $station = $request->input('station');
+        $txns = Txn::select('userid', DB::raw('sum(amount) as total_sales'), DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->groupBy('userid')->orderBy('total_sales', 'desc');
 
-            if (Auth::user()->usertype == 'stationadmin'){ 
-                $txns = Txn::select('userid', 'fueltype', 'paymethod', DB::raw('sum(amount) as total_sales'), DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->where('stationid','=',$stationid)->where(DB::raw('date(created_at)'), '=', $summ_date)->groupBy('userid')->groupBy('fueltype')->groupBy('paymethod')->get();
-            
-                return view('txns.salessumm',['txns'=> $txns, 'stations' => $stations]);
+        if ($station != NULL){
+            $txns = $txns->where('stationid','=', $station);
+        }
+        if ($fueltype != NULL){
+            $txns = $txns->where('fueltype','=', $fueltype);
+        }
+        if ($summ_date_1 != NULL){
+            if ($summ_date_2 != NULL){
+                $txns = $txns->where(DB::raw('date(txns.created_at)'), '<=', $summ_date_2)->where(DB::raw('date(txns.created_at)'),'>=',$summ_date_1);
+            } 
+            else{
+                $txns = $txns->where(DB::raw('date(txns.created_at)'), '=', $summ_date_1);
             }
-
-            if ($station == NULL) {
-                $txns = Txn::select('userid', 'fueltype', 'paymethod', DB::raw('sum(amount) as total_sales'), DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->where(DB::raw('date(created_at)'), '=', $summ_date)->groupBy('userid')->groupBy('fueltype')->groupBy('paymethod')->get();
-                return view('txns.salessumm',['txns'=> $txns, 'stations' => $stations]);
-            }
-
-            $txns = Txn::select('userid', 'fueltype', 'paymethod', DB::raw('sum(amount) as total_sales'), DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->where('stationid','=',$station)->where(DB::raw('date(created_at)'), '=', $summ_date)->groupBy('userid')->groupBy('fueltype')->groupBy('paymethod')->get();
-            return view('txns.salessumm',['txns'=> $txns, 'stations' => $stations]);
-
         }
 
         if (Auth::user()->usertype == 'stationadmin'){ 
-            //$txns = Txn::select('userid', 'fueltype', 'paymethod', DB::raw('sum(amount) as total_sales'), DB::raw('sum(volume) as total_vol'))->where('stationid','=',$stationid)->groupBy('userid')->groupBy('fueltype')->groupBy('paymethod')->get();
-            $txns = Txn::select('userid', 'fueltype', 'paymethod', DB::raw('sum(amount) as total_sales'), DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->where('stationid', '=' , $stationid)->where(DB::raw('date(created_at)'), '>=', $lasteod_datetime)->where(DB::raw('date(created_at)'), '<=' , $curr_datetime)->groupBy( 'userid')->groupBy( 'fueltype')->groupBy( 'paymethod')->get();
-            return view('txns.salessumm',['txns'=> $txns, 'stations' => $stations]);
+            $txns = $txns->where('stationid', '=', $stationid);
         }
 
-        $txns = Txn::select('userid', 'fueltype', 'paymethod', DB::raw('sum(amount) as total_sales'), DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->groupBy('userid')->groupBy('fueltype')->groupBy('paymethod')->get();
-        return view('txns.salessumm',['txns'=> $txns, 'stations' => $stations]);
+        $txns = $txns->get();
 
+        return view('txns.salessumm',['txns'=> $txns, 'stations' => $stations]);
+    }
+
+    //monthly summary for all vehicles
+    public function monthsummary()
+    {
+        $user = Auth::user();
+        $companyid = $user->companyid;
+        $curr_date = date('Y-m-d');
+
+        $txns = Txn::get();
+
+        return view('txns.monthsummary', ['txns' => $txns]);
     }
 
     public function destroy($id)

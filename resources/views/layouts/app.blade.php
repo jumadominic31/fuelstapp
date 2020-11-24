@@ -13,9 +13,9 @@
     <!-- Styles -->
     <!--<link rel="stylesheet" type="text/css" href="{{ URL::to('css/bootstrap.min.css') }}">-->
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ URL::to('css/bootstrap-datepicker.css') }}">
-    <script type="text/javascript" src="{{ URL::to('js/jquery.js') }}"></script>
-    <script type="text/javascript" src="{{ URL::to('js/bootstrap-datepicker.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap-datepicker.css') }}">
+    <script type="text/javascript" src="{{ asset('js/jquery.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/bootstrap-datepicker.js') }}"></script>
     <link href="{{ asset('css/theme.css') }}" rel="stylesheet">
     <link href="{{ asset('css/footer.css') }}" rel="stylesheet">
 </head>

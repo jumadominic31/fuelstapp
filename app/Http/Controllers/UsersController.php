@@ -14,6 +14,9 @@ use Auth;
 use Session;
 use App\Station;
 use App\User_login;
+use App\Vehicle;
+use App\Pump;
+use App\Rate;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use JWTAuth;
 
@@ -59,18 +62,35 @@ class UsersController extends Controller
             'username' => 'required',
             'password' => 'required'
         ]);
+
+        $rate_date = date('Y-m-d');
         $credentials = $request->only('username', 'password');
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
-                    'error' => 'Invalid Credentials!'
-                ], 401);
+                    'error' => 'Invalid Credentials!',
+                    'status' => 'failed'
+                ], 200);
             }
         } catch (JWTException $e) {
             return response()->json([
-                'error' => 'Could not create token!'
-            ], 500);
+                'error' => 'Could not create token!',
+                'status' => 'failed'
+            ], 200);
         }
+
+        $username = $request->input('username');
+        $userdetails = DB::table('users')
+            ->join('stations', 'users.stationid', '=', 'stations.id')
+            ->join('companies', 'users.companyid', '=', 'companies.id')
+            ->select('users.id', 'users.username', 'users.stationid', 'stations.station', 'stations.receipt_header', 'users.companyid', 'companies.name', 'companies.address', 'companies.city', 'companies.phone', 'companies.email' )
+            ->where('users.username', '=', $username)
+            ->get();
+        $companyid = $userdetails[0]->companyid;
+        $vehicles = Vehicle::select('num_plate')->where('companyid', '=', $companyid)->pluck('num_plate');
+        $rates =  Rate::where('companyid', '=', $companyid)->where('start_rate_date', '<=', $rate_date)->where('end_rate_date','>=',$rate_date)->get();            
+        $stations = Station::where('companyid', '=', $companyid)->get();
+        $pumps = Pump::where('companyid', '=', $companyid)->get();
         
         //to log user signin to user_logins table
         $userlogin = new User_login();
@@ -81,7 +101,13 @@ class UsersController extends Controller
         $userlogin->save();
         //
         return response()->json([
-            'token' => $token
+            'token' => $token,
+            'userdetails' => $userdetails,
+            'vehicles' => $vehicles,
+            'rates' => $rates,
+            'station' => $stations,
+            'pumps' => $pumps,
+            'status' => 'success'
         ], 200);
     }
 
@@ -185,9 +211,9 @@ class UsersController extends Controller
                 $request->user()->fill([
                     'password' => Hash::make($request->input('new_password'))
                 ])->save();
-                return response()->json(['message' => 'Password changed'], 200);
+                return response()->json(['message' => 'Password changed', 'status' => 'success'], 200);
             } else {
-                return response()->json(['message' => 'Current password incorrect'], 400);
+                return response()->json(['message' => 'Current password incorrect', 'status' => 'failed'], 200);
             }
         }
     }
@@ -229,7 +255,7 @@ class UsersController extends Controller
     public function create()
     {
         $companyid = Auth::user()->companyid;
-        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id');
+        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id')->all();
         return view('users.create', ['stations' => $stations, 'companyid' => $companyid]);
     }
 
@@ -239,9 +265,10 @@ class UsersController extends Controller
         $this->validate($request, [
             'username' => 'required|unique:users',
             'fullname' => 'required',
-            'phone' => 'required',
-            'email' => 'email|required',
-            //'password' => 'required',
+            'phone' => array('required', 'regex:/^[0-9]{12}$/'),
+            'email' => 'sometimes|nullable|email',
+            'pass1' => 'required|same:pass1',
+            'pass2' => 'required|same:pass1',
             'stationid' => 'required',
             'status' => 'required',
             'usertype' => 'required' 
@@ -259,7 +286,8 @@ class UsersController extends Controller
             return implode($pass); //turn the array into a string
         }
         
-        $password = randomPassword();
+        // $password = randomPassword();
+        $password = $request->input('pass1');
         $email = $request->input('email');
 
         $user = new User;
@@ -268,7 +296,6 @@ class UsersController extends Controller
         $user->companyid = $companyid;
         $user->phone = $request->input('phone');
         $user->email = $email;
-        //$user->password = bcrypt($request->input('password'));
         $user->password = bcrypt($password);
         $user->stationid = $request->input('stationid');
         $user->status = $request->input('status');
@@ -283,8 +310,11 @@ class UsersController extends Controller
     public function edit($id)
     {
         $companyid = Auth::user()->companyid;
-        $user = User::find($id);
-        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id');
+        $stations = Station::where('companyid', '=', $companyid)->pluck('station','id')->all();
+        $user = User::where('companyid', '=', $companyid)->find($id);
+        if ($user == null){
+            return redirect('/users')->with('error', 'User not found');
+        }
         return view('users.edit',['user'=> $user, 'stations' => $stations]);
     }
 
@@ -292,15 +322,21 @@ class UsersController extends Controller
     {
         $this->validate($request, [
             'fullname' => 'required',
+            'pass1' => 'same:pass1',
+            'pass2' => 'same:pass1',
             'phone' => 'required',
             'stationid' => 'required',
             'status' => 'required',
             'usertype' => 'required' 
         ]);
-        
+        $password = $request->input('pass1');
         
         $user = User::find($id);
         $user->fullname = $request->input('fullname');
+        if ($password != NULL)
+        {
+            $user->password = bcrypt($password);
+        }
         $user->phone = $request->input('phone');
         $user->stationid = $request->input('stationid');
         $user->status = $request->input('status');

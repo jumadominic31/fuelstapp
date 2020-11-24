@@ -69,11 +69,13 @@ class ReadingsController extends Controller
         $lasteodayid      = $eodayid->orderBy('id', 'desc')->pluck('id')->first();
         $dieseleodayid    = $lasteodayid + 1;
         $petroleodayid    = $lasteodayid + 2;
+        $keroseneeodayid    = $lasteodayid + 3;
 
         $userid = Auth::user()->id;
         $stationid = Auth::user()->stationid;
 		$tot_diesel_vol = 0;
 		$tot_petrol_vol = 0;
+        $tot_kerosene_vol = 0;
 		
 		$pumps = Pump::where('companyid', '=', $companyid)->where('stationid','=',$stationid)->pluck('pumpname', 'id')->toArray();
 		
@@ -100,6 +102,10 @@ class ReadingsController extends Controller
 				${'reading_'.$pump}->eoday_id  = $petroleodayid;
 				$tot_petrol_vol += ${'reading_'.$pump}->diff;
 			} 
+            else if ($fueltype == 'Kerosene'){
+                ${'reading_'.$pump}->eoday_id  = $keroseneeodayid;
+                $tot_kerosene_vol += ${'reading_'.$pump}->diff;
+            } 
 			${'reading_'.$pump}->save();
 		
 		}

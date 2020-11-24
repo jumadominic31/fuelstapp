@@ -7,17 +7,41 @@
 <h3> Filter </h3>
 <input type="checkbox" autocomplete="off" onchange="checkfilter(this.checked);"/>
 <div id="filteroptions" style="display: none ;">
-    {!! Form::open(['action' => 'TxnsController@salessumm', 'method' => 'POST', 'enctype' => 'multipart/form-data']) !!}
-        @if (Auth::user()->usertype == 'admin')
-            <div class="form-group">
-                {{Form::label('station', 'Station')}}
-                {{Form::select('station', $stations, null, ['class' => 'form-control', 'optional' => 'Choose Station'])}}
-            </div>
-        @endif
-        <div class="form-group">
-            {{Form::label('summ_date', 'Date')}}
-            {{Form::text('summ_date', '', ['class' => 'form-control date', 'placeholder' => 'Choose Date yyyy-mm-dd'])}}
-        </div>
+    {!! Form::open(['action' => 'TxnsController@salessumm', 'method' => 'GET', 'enctype' => 'multipart/form-data']) !!}
+        <table class="table">
+            <tbody>
+                <tr>
+                    @if (Auth::user()->usertype == 'admin')
+                    <td>
+                        <div class="form-group">
+                            {{Form::label('station', 'Station')}}
+                            {{Form::select('station', ['' => ''] + $stations, null, ['class' => 'form-control', 'optional' => 'Choose Station'])}}
+                        </div>
+                    </td>
+                    @endif
+                    <td>
+                        <div class="form-group">
+                            {{Form::label('fueltype', 'Fuel Type')}}
+                            {{Form::select('fueltype', ['' => '', 'diesel' => 'Diesel', 'petrol' => 'Petrol', 'kerosene' => 'Kerosene'], null, ['class' => 'form-control'])}}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="form-group">
+                            {{Form::label('summ_date_1', 'First Date')}}
+                            {{Form::text('summ_date_1', '', ['class' => 'form-control date', 'placeholder' => 'Choose Date yyyy-mm-dd'])}}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-group">
+                            {{Form::label('summ_date_2', 'Last Date (Choose First Date to use this)')}}
+                            {{Form::text('summ_date_2', '', ['class' => 'form-control date', 'placeholder' => 'Choose Date yyyy-mm-dd'])}}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     {{Form::submit('Submit', ['class'=>'btn btn-primary'])}}
 </div>
 <hr>
@@ -33,26 +57,22 @@
         <table class="table table-striped" >
         <tr>
         <th>Attendant</th>
-        <th>Fuel Type</th>
-        <th>Payment Channel</th>
-        <th>Total Volume</th>
-        <th>Total Sales</th>
+        <th align="center">Total Volume</th>
+        <th align="center">Total Sales</th>
         </tr>
         @foreach($txns as $txn)
         <tr>
         
         <td>{{$txn['user']['username']}}</td>
-        <td>{{$txn['fueltype']}}</td>
-        <td>{{$txn['paymethod']}}</td>
-        <td>{{$txn['total_vol']}}</td>
-        <td>{{$txn['total_sales']}}</td>
+        <td align="right">{{number_format($txn['total_vol'], 2, '.', ',')}}</td>
+        <td align="right">{{number_format($txn['total_sales'], 2, '.', ',')}}</td>
         </tr>
         @endforeach
 
         </table>
         
     @else
-      <p>No txns To Display</p>
+      <p>No Sales on the selected dates</p>
     @endif
 </div>
 @endsection

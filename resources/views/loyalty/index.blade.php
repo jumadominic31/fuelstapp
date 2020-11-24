@@ -3,7 +3,7 @@
 @section('content')
 <h1> Loyalty Points </h1>
 
-<a class="pull-right btn btn-default" href="/loyalty">Reset</a>
+<a class="pull-right btn btn-default" href="{{ route('loyalty.index') }}">Reset</a>
 <h3> Filter </h3>
 <input type="checkbox" autocomplete="off" onchange="checkfilter(this.checked);"/>
 <div id="filteroptions" style="display: none ;">
@@ -41,7 +41,7 @@
         
         <td>{{$txn['vehregno']}}</td>
         <td>{{$txn['total_vol']}}</td>
-        <td><a class="pull-right btn btn-sm btn-default" href="/loyalty/{{$txn->vehregno}}">Details</a></td>
+        <td><a class="pull-right btn btn-sm btn-default" href="{{ route('loyalty.show', ['vehregno' => $txn->vehregno ]) }}">Details</a></td>
 
         </tr>
         @endforeach

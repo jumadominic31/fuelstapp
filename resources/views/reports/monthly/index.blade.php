@@ -2,7 +2,7 @@
 
 @section('content')
 <h1> Monthly Report </h1>
-<a class="btn btn-default" href="{{ URL::to('eodays/downloadExcel/xlsx') }}">Download All Eoday</a> 
+<a class="btn btn-default" href="{{ route('eodays.downloadeodayExcel', ['type' => 'xlsx' ]) }}">Download All Eoday</a> 
 <a class="pull-right btn btn-default" href="{{ route('monthly.get') }}">Reset</a>
 <h3> Filter </h3>
 <div class="row">
