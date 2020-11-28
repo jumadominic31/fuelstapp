@@ -19,4 +19,5 @@ class Pump extends Model
     {
         return $this->belongsTo('App\User', 'attendantid');
     }
+
 }

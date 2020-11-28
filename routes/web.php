@@ -168,6 +168,36 @@ Route::group(['middleware' => 'auth'] , function () {
         'as' => 'eodays.show'
     ]);
 
+    Route::get('/eodays/pump/create', [
+        'uses' => 'EodaysController@pumpcreate' , 
+        'as' => 'eodays.pump.create'
+    ]);
+
+    Route::post('/eodays/pump/store', [
+        'uses' => 'EodaysController@pumpstore' , 
+        'as' => 'eodays.pump.store'
+    ]);
+
+    Route::get('/eodays/tank/create', [
+        'uses' => 'EodaysController@tankcreate' , 
+        'as' => 'eodays.tank.create'
+    ]);
+
+    Route::post('/eodays/tank/store', [
+        'uses' => 'EodaysController@tankstore' , 
+        'as' => 'eodays.tank.store'
+    ]);
+
+    Route::get('/eodays/collection/create', [
+        'uses' => 'EodaysController@collectioncreate' , 
+        'as' => 'eodays.collection.create'
+    ]);
+
+    Route::post('/eodays/collection/store', [
+        'uses' => 'EodaysController@collectionstore' , 
+        'as' => 'eodays.collection.store'
+    ]);
+
     //Users
     Route::get('/users/logout', [
         'uses' => 'UsersController@getLogout',
@@ -253,6 +283,8 @@ Route::group(['middleware' => 'auth'] , function () {
         Route::get('/stationid/attendant/{stationid}', 'PumpsController@getattendants')->name('station.getattendants');
 
         Route::resource('pumps', 'PumpsController');
+
+        Route::resource('tanks', 'TanksController');
 
         //Getting started
         Route::get('/getstarted', [

@@ -43,6 +43,7 @@
                         <li><a href="{{ route('rates.index') }}">Rates</a></li>
                         <li><a href="{{ route('users.index') }}">Users</a></li>
                         <li><a href="{{ route('pumps.index') }}">Pumps</a></li>
+                        <li><a href="{{ route('tanks.index') }}">Tanks</a></li>
                         <li><a href="{{ route('vehicles.index') }}">Vehicles</a></li>
                         <li><a href="{{ route('owners.index') }}">Owners</a></li>
                     </ul>
@@ -58,6 +59,14 @@
                         <li><a href="{{ route('monthly.get') }}">Monthly Report List</a></li>
                         <li><a href="{{ route('reports.vehicles') }}">Vehicles Fueling Report</a></li>
                         <li><a href="{{ route('loyalty.index') }}">Loyalty Program</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">End of Day Report<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ route('eodays.pump.create') }}">Pump Readings</a></li>
+                        <li><a href="{{ route('eodays.collection.create') }}">Cash Collections</a></li>
+                        <li><a href="{{ route('eodays.tank.create') }}">Tank Dip Readings</a></li>
                     </ul>
                 </li>
                 <li><a href="{{ route('dashboard.getstarted') }}">Get Started</a></li>
