@@ -60,15 +60,6 @@
                         <li><a href="{{ route('loyalty.index') }}">Loyalty Program</a></li>
                     </ul>
                 </li>
-                {{-- <li>
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">End of Day Report<span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{{ route('eodays.new.create') }}">Create EOD</a></li>
-                        <li><a href="{{ route('eodays.pump.create') }}">Pump Readings</a></li>
-                        <li><a href="{{ route('eodays.collection.create') }}">Cash Collections</a></li>
-                        <li><a href="{{ route('eodays.tank.create') }}">Tank Dip Readings</a></li>
-                    </ul>
-                </li> --}}
                 <li><a href="{{ route('dashboard.getstarted') }}">Get Started</a></li>
             </ul>
 
