@@ -52,23 +52,23 @@
                 <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        @if(Auth::user()->usertype == 'stationadmin')
+                        <li><a href="{{ route('eodays.new.create') }}">Create EOD</a></li>
                         <li><a href="{{ route('readings.create') }}">Create End of Day Report</a></li>
-                        @endif
                         <li><a href="{{ route('eodays.index') }}">Daily Report List</a></li>
                         <li><a href="{{ route('monthly.get') }}">Monthly Report List</a></li>
                         <li><a href="{{ route('reports.vehicles') }}">Vehicles Fueling Report</a></li>
                         <li><a href="{{ route('loyalty.index') }}">Loyalty Program</a></li>
                     </ul>
                 </li>
-                <li>
+                {{-- <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">End of Day Report<span class="caret"></span></a>
                     <ul class="dropdown-menu">
+                        <li><a href="{{ route('eodays.new.create') }}">Create EOD</a></li>
                         <li><a href="{{ route('eodays.pump.create') }}">Pump Readings</a></li>
                         <li><a href="{{ route('eodays.collection.create') }}">Cash Collections</a></li>
                         <li><a href="{{ route('eodays.tank.create') }}">Tank Dip Readings</a></li>
                     </ul>
-                </li>
+                </li> --}}
                 <li><a href="{{ route('dashboard.getstarted') }}">Get Started</a></li>
             </ul>
 

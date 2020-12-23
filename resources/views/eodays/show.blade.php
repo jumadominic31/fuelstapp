@@ -3,7 +3,7 @@
 @section('content')
     <a href="{{ route('eodays.index') }}" class="btn btn-default">Go Back</a>
     <h1>{{$eoday['station']['station']}}</h1>
-    <strong>EOD Date/Time: </strong> {{$eoday->created_at}} <br>
+    {{-- <strong>EOD Date/Time: </strong> {{$eoday->created_at}} <br> --}}
     for {{$eoday['fueltype']}}
     <div>
         <hr>

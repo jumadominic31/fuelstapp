@@ -31,7 +31,7 @@
             </div>
             <div class="col-md-3">
                 <div class="well dash-box">
-                    <h2><span class="glyphicon glyphicon-usd" aria-hidden="true"></span> {{$total_sales}}</h2>
+                    <h2><span class="glyphicon glyphicon-usd" aria-hidden="true"></span> {{number_format($total_sales, 2)}}</h2>
                     <h4>Total Day's Collection</h4>
                 </div>
             </div>
@@ -63,8 +63,8 @@
                 </tr>
                 @foreach ($station_sales as $station_sale)
                 <tr>
-                <td>{{$station_sale['station']['station']}}</td>
-                <td>{{$station_sale['total_sales']}}</td>
+                <td> {{$station_sale['station']['station']}}</td>
+                <td> {{number_format($station_sale['total_sales'], 2)}}</td>
                 </tr>
                 @endforeach
                 

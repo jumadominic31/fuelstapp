@@ -4,6 +4,48 @@
 <h1> Transactions </h1>
 
 <a class="pull-right btn btn-default" href="{{ route('txns.index') }}">Reset</a>
+
+<div class="panel panel-default">
+  <div class="panel-heading main-color-bg">
+      <h3 class="panel-title">Today's Sales</h3>
+  </div>
+  <div class="panel-body">
+      <div class="col-md-3">
+          <div class="well dash-box">
+              <h2><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> {{number_format($totals['cash'], 2)}}</h2>
+              <h4>Cash</h4>
+          </div>
+      </div>
+      <div class="col-md-3">
+          <div class="well dash-box">
+              <h2><span class="glyphicon glyphicon-usd" aria-hidden="true"></span> {{number_format($totals['mpesa'], 2)}}</h2>
+              <h4>Mpesa</h4>
+          </div>
+      </div>
+      <div class="col-md-3">
+          <div class="well dash-box">
+              <h2><span class="glyphicon glyphicon-oil" aria-hidden="true"></span> {{number_format($totals['credit'], 2)}}</h2>
+              <h4>Credit</h4>
+          </div>
+      </div>
+      <div class="col-md-3">
+          <div class="well dash-box">
+              <h2><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{number_format($totals['visa'], 2)}}</h2>
+              <h4>Visa</h4>
+          </div>
+      </div>
+      <div class="col-md-4">
+      </div>
+      <div class="col-md-4">
+        <div class="well dash-box">
+        <h2><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{number_format($totals['tot_coll'], 2)}}</h2>
+            <h4>Total</h4>
+        </div>
+    </div>
+    <div class="col-md-4">
+    </div>
+  </div>
+</div>
 <h3> Filter </h3>
 <input type="checkbox" autocomplete="off" onchange="checkfilter(this.checked);"/>
 <div id="filteroptions" style="display: none ;">
@@ -35,7 +77,7 @@
         </div></td>
         <td><div class="form-group">
             {{Form::label('paymethod', 'Payment Method')}}
-            {{Form::select('paymethod', ['' => '', 'Cash' => 'Cash', 'Credit' => 'Credit', 'MPesa' => 'MPesa'], '', ['class' => 'form-control', 'placeholder' => 'Payment Method'])}}
+            {{Form::select('paymethod', ['' => '', 'Cash' => 'Cash', 'Credit' => 'Credit', 'MPesa' => 'MPesa', 'Visa' => 'Visa'], '', ['class' => 'form-control', 'placeholder' => 'Payment Method'])}}
         </div></td>
       </tr>
       <tr>

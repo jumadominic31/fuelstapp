@@ -28,9 +28,9 @@ class TxnsController extends Controller
         $companyid = Auth::user()->companyid;
         $company_details = Company::where('id', '=', $companyid)->get();
         $stations = Station::where('companyid', '=', $companyid)->pluck('station', 'id')->all();
-        $attendants = User::where('usertype','=','attendant')->where('companyid', '=', $companyid)->pluck('fullname', 'id')->all();
+        $attendants = User::where('companyid', '=', $companyid)->pluck('fullname', 'id')->all();
         $curr_date = date('Y-m-d');
-        $last_10_date = date('Y-m-d', strtotime('-10 days'));
+        $last_10_date = date('Y-m-d', strtotime('-1 days'));
         $stationid = Auth::user()->stationid;
         $vehregno = $request->input('vehregno');
         $receiptno = $request->input('receiptno');
@@ -42,7 +42,7 @@ class TxnsController extends Controller
         $attendantid = $request->input('attendantid');
         
         $txns = Txn::where('companyid', '=', $companyid);
-        $tot_coll = Txn::select('companyid', DB::raw('sum(amount) as tot_amount'))->where('companyid', '=', $companyid);
+        $tot_coll = Txn::select('paymethod', DB::raw('sum(amount) as tot_amount'))->where('companyid', '=', $companyid);
         if (Auth::user()->usertype == 'stationadmin'){
             $txns = $txns->where('stationid' , '=' , $stationid);
             $tot_coll = $tot_coll->where('stationid' , '=' , $stationid);
@@ -86,14 +86,38 @@ class TxnsController extends Controller
             $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'),'>=',$last_10_date);
         }
         $txns = $txns->orderBy('created_at','desc')->limit(300)->paginate(30);
-        $tot_coll = $tot_coll->groupBy('companyid')->pluck('tot_amount')->first();
+        
+        // $totals = $tot_coll->groupBy('paymethod')->get();
+        $tots2 = $tot_coll->groupBy('paymethod')->get();
+        $totals = ['cash' => 0, 'mpesa' => 0, 'credit' => 0, 'visa' => 0, 'tot_coll' => 0];
+
+        foreach ($tots2 as $tots){
+            if ($tots['paymethod'] == 'Cash'){
+                $totals['cash'] = $tots['tot_amount'];
+            }
+            if ($tots['paymethod'] == 'MPesa'){
+                $totals['mpesa'] = $tots['tot_amount'];
+            }
+            if ($tots['paymethod'] == 'Credit'){
+                $totals['credit'] = $tots['tot_amount'];
+            }
+            if ($tots['paymethod'] == 'Visa'){
+                $totals['visa'] = $tots['tot_amount'];
+            }
+        }
+        $totals['tot_coll'] = $totals['cash'] + $totals['mpesa'] + $totals['credit'] + $totals['visa'];
+        // $totals = implode(', ', $totals);
+        
+        
+        // $totals['tot_coll'] = $tot_coll->pluck('tot_amount')->first();
+        
         if ($request->submitBtn == 'CreatePDF') {
             $pdf = PDF::loadView('pdf.txns', ['txns' => $txns, 'tot_coll' => $tot_coll, 'company_details' => $company_details, 'curr_date' => $curr_date]);
             $pdf->setPaper('A4', 'landscape');
             return $pdf->stream('txns.pdf');
         } 
 
-        return View('txns.index', ['txns' => $txns, 'vehregno' => $vehregno, 'receiptno' => $receiptno, 'attendants' => $attendants, 'stations' => $stations]);
+        return View('txns.index', ['txns' => $txns, 'vehregno' => $vehregno, 'receiptno' => $receiptno, 'attendants' => $attendants, 'stations' => $stations, 'totals' => $totals]);
     }
 
     public function edit($id)
@@ -185,7 +209,7 @@ class TxnsController extends Controller
         $user = JWTAuth::parseToken()->toUser();
         $validator = Validator::make(($request->all()), [
             //'userid'    => 'required',
-            //'stationid' => 'required',
+            'stationid' => 'required',
             'vehregno'  => 'required',
             'amount'    => 'required',
             'volume'    => 'required',
@@ -195,7 +219,8 @@ class TxnsController extends Controller
             'pumpid'    => 'required',
         ]);
 
-        $stationid = $user->stationid;
+        //$stationid = $user->stationid;
+        $stationid = $request->input('stationid');
         $station = Station::select('station')->where('id', '=', $stationid)->pluck('station')->first();
         $vehregno = $request->input('vehregno');
         
@@ -215,8 +240,8 @@ class TxnsController extends Controller
             //$txn->userid    = $request->input('userid');
             $txn->userid    = $user->id;
             $txn->receiptno = date('y').date('m').date('d').$newtxnid;
-            //$txn->stationid = $request->input('stationid');
-            $txn->stationid = $user->stationid;
+            $txn->stationid = $stationid;
+            // $txn->stationid = $user->stationid;
             $txn->companyid = $companyid;
             $txn->vehregno  = $vehregno;
             $txn->ownerid   = $owner_id;
@@ -251,7 +276,7 @@ class TxnsController extends Controller
                     }
                 }
             }
-            return response()->json(['txn' => $txn, 'status' => 'success'], 201);
+            return response()->json(['txn' => $txn, 'station' => $station, 'status' => 'success'], 201);
         }
     }
 

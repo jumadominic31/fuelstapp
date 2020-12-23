@@ -168,6 +168,21 @@ Route::group(['middleware' => 'auth'] , function () {
         'as' => 'eodays.show'
     ]);
 
+    Route::get('/eodays/new/create', [
+        'uses' => 'EodaysController@newcreate' , 
+        'as' => 'eodays.new.create'
+    ]);
+
+    Route::post('/eodays/new/eodentry', [
+        'uses' => 'EodaysController@neweodentry' , 
+        'as' => 'eodays.new.eodentry'
+    ]);
+
+    Route::post('/eodays/new/posteodentry', [
+        'uses' => 'EodaysController@posteodentry' , 
+        'as' => 'eodays.new.posteodentry'
+    ]);
+
     Route::get('/eodays/pump/create', [
         'uses' => 'EodaysController@pumpcreate' , 
         'as' => 'eodays.pump.create'
