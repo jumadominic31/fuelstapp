@@ -3,7 +3,7 @@
 @section('content')
 <h1> Create EOD</h1>
 
-{!! Form::open(['action' => 'EodaysController@neweodentry', 'method' => 'POST', 'enctype' => 'multipart/form-data']) !!}
+{!! Form::open(['action' => 'EodaysController@neweodentry', 'method' => 'GET', 'enctype' => 'multipart/form-data']) !!}
 
     <div class="form-group">
         {{Form::label('stationid', 'Station ID')}}

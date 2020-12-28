@@ -146,6 +146,11 @@ Route::group(['middleware' => 'auth'] , function () {
 		
     Route::get('/txns', 'TxnsController@index')->name('txns.index');
 
+    Route::match(array('PUT', 'PATCH'), '/txns/cancel/{id}', [
+        'uses' => 'TxnsController@cancel',
+        'as' => 'txns.cancel'
+    ]);
+
     // Route::post('/txns', 'TxnsController@index')->name('txns.filter');
 
     Route::get('/txns/salessumm', 'TxnsController@salessumm')->name('txns.salessumm.index');
@@ -153,16 +158,24 @@ Route::group(['middleware' => 'auth'] , function () {
     // Route::post('/txns/salessumm', 'TxnsController@salessumm')->name('txns.salessumm.filter');
 
     //Eodays
+    //Create Eoday/Readings
+    Route::get('/readings/create', [
+        'uses' => 'ReadingsController@create' , 
+        'as' => 'readings.create'
+    ]);
+
     Route::get('/eodays/downloadExcel/{type}', [
         'uses' => 'EodaysController@downloadeodayExcel',
         'as' => 'eodays.downloadeodayExcel'
     ]);
 
+    //to remove
     Route::get('/eodays', [
         'uses' => 'EodaysController@index' , 
         'as' => 'eodays.index'
     ]); 
 
+    //to remove
     Route::get('/eodays/{eoday}', [
         'uses' => 'EodaysController@show' , 
         'as' => 'eodays.show'
@@ -173,14 +186,29 @@ Route::group(['middleware' => 'auth'] , function () {
         'as' => 'eodays.new.create'
     ]);
 
-    Route::post('/eodays/new/eodentry', [
+    Route::get('/eodays/new/eodentry', [
         'uses' => 'EodaysController@neweodentry' , 
         'as' => 'eodays.new.eodentry'
+    ]);
+
+    Route::get('/eodays/new/posteodentry', [
+        'uses' => 'EodaysController@posteodentry' , 
+        'as' => 'eodays.new.posteodentry'
     ]);
 
     Route::post('/eodays/new/posteodentry', [
         'uses' => 'EodaysController@posteodentry' , 
         'as' => 'eodays.new.posteodentry'
+    ]);
+
+    Route::get('/eodays/daily/index', [
+        'uses' => 'EodaysController@listeodentry' , 
+        'as' => 'eodays.daily.index'
+    ]);
+
+    Route::get('/eodays/daily/show/{id}', [
+        'uses' => 'EodaysController@showeodentry' , 
+        'as' => 'eodays.daily.show'
     ]);
 
     //Users
@@ -281,11 +309,7 @@ Route::group(['middleware' => 'auth'] , function () {
 
     //StationadminMiddleware
     Route::group(['middleware' => 'auth.stationadmin'] , function () {
-        //Creade Eoday/Readings
-        Route::get('/readings/create', [
-            'uses' => 'ReadingsController@create' , 
-            'as' => 'readings.create'
-        ]);        
+                
     });
 
 });

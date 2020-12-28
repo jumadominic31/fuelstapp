@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<a href="{{ route('eodays.new.create') }}" class="btn btn-default">Go Back</a>
 <h1> EOD Entry</h1>
-{!! Form::open(['action' => 'EodaysController@posteodentry', 'method' => 'POST', 'enctype' => 'multipart/form-data']) !!}
+{!! Form::open([ 'action' => 'EodaysController@posteodentry', 'method' => 'POST', 'onsubmit' => 'return confirm("Are you sure?")', 'enctype' => 'multipart/form-data']) !!}
     <input type="hidden" id="stationid" name="stationid" value="{{$stationid}}">
     <div class="form-group">
         {{Form::label('station', 'Station Name')}}
@@ -30,10 +31,10 @@
             <tr>
                 <td style="display:none;">{{Form::text('attid_'.$key, $key , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
                 <td>{{Form::text('attname_'.$key, $att , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
-                <td>{{Form::text('attcash_'.$key , '' , ['class' => 'form-control'])}}</td>
-                <td>{{Form::text('attmpesa_'.$key , '' , ['class' => 'form-control'])}}</td>
-                <td>{{Form::text('attcredit_'.$key , '' , ['class' => 'form-control'])}}</td>
-                <td>{{Form::text('attvisa_'.$key , '' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('attcash_'.$key , '0' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('attmpesa_'.$key , '0' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('attcredit_'.$key , '0' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('attvisa_'.$key , '0' , ['class' => 'form-control'])}}</td>
             </tr>
             @endforeach
         </table> 
@@ -53,7 +54,7 @@
                 <td style="display:none;">{{Form::text('pumpid_'.$pump['id'], $pump['id'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
                 <td>{{Form::text('pumpname_'.$pump['id'], $pump['pumpname'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
                 <td>{{Form::text('pumpprev_'.$pump['id'], $pump['reading'] , ['class' => 'form-control'])}}</td>
-                <td>{{Form::text('pumpret_'.$pump['id'], '' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('pumpret_'.$pump['id'], '0' , ['class' => 'form-control'])}}</td>
                 <td>{{Form::text('pumpnew_'.$pump['id'], '' , ['class' => 'form-control'])}}</td>
                 <td>{{Form::select('pumpatt_'.$pump['id'],  ['' => ''] + $attendants, '' , ['class' => 'form-control'])}}</td>
             </tr>
@@ -74,7 +75,7 @@
                 <td style="display:none;">{{Form::text('tankid_'.$tank['id'], $tank['id'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
                 <td>{{Form::text('tankname_'.$tank['id'], $tank['tankname'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
                 <td>{{Form::text('tankprev_'.$tank['id'], $tank['reading'] , ['class' => 'form-control'])}}</td>
-                <td>{{Form::text('tankpurc_'.$tank['id'], '' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('tankpurc_'.$tank['id'], '0' , ['class' => 'form-control'])}}</td>
                 <td>{{Form::text('tanknew_'.$tank['id'], '' , ['class' => 'form-control'])}}</td>
             </tr>
             @endforeach

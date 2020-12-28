@@ -111,36 +111,38 @@
         ?>
          
         <table class="table table-striped" >
-        <tr>
-        <th>Receipt No</th>
-        <th>Vehicle Reg No</th>
-        <th>Amount (KShs)</th>
-        <th>Volume (l)</th>
-        <th>Rate</th>
-        <th>Fuel Type</th>
-        <th>Payment Method</th>
-        <th>Txn Date/Time</th>
-        <th>User ID</th>
-        <th>Station ID</th>
-        <th></th>
-        </tr>
-        @foreach($txns as $txn)
-        <tr>
-        
-        <td>{{$txn['receiptno']}}</td>
-        <td>{{$txn['vehregno']}}</td>
-        <td>{{number_format($txn['amount'], 2, '.', ',')}}</td>
-        <td>{{$txn['volume']}}</td>
-        <td>{{number_format($txn['sellprice'], 2, '.', ',')}}</td>
-        <td>{{$txn['fueltype']}}</td>
-        <td>{{$txn['paymethod']}}</td>
-        <td>{{$txn['created_at']}}</td>
-        <td>{{$txn['user']['fullname']}}</td>
-        <td>{{$txn['station']['station']}}</td>
-        <td><a class="btn btn-default" href="{{ route('txns.edit', ['txn' => $txn->id ]) }}">Edit</a></td>
+            <tr>
+                <th>Receipt No</th>
+                <th>Vehicle Reg No</th>
+                <th>Amount (KShs)</th>
+                <th>Volume (l)</th>
+                <th>Rate</th>
+                <th>Fuel Type</th>
+                <th>Payment Method</th>
+                <th>Txn Date/Time</th>
+                <th>User ID</th>
+                <th>Station ID</th>
+                <th>Cancelled</th>
+                <th></th>
+            </tr>
+            @foreach($txns as $txn)
+            <tr>
+            
+                <td>{{$txn['receiptno']}}</td>
+                <td>{{$txn['vehregno']}}</td>
+                <td>{{number_format($txn['amount'], 2, '.', ',')}}</td>
+                <td>{{$txn['volume']}}</td>
+                <td>{{number_format($txn['sellprice'], 2, '.', ',')}}</td>
+                <td>{{$txn['fueltype']}}</td>
+                <td>{{$txn['paymethod']}}</td>
+                <td>{{$txn['created_at']}}</td>
+                <td>{{$txn['user']['fullname']}}</td>
+                <td>{{$txn['station']['station']}}</td>
+                <td>{{$txn['cancelled']}}</td>
+                <td><a class="btn btn-default" href="{{ route('txns.edit', ['txn' => $txn->id ]) }}">Edit</a></td>
 
-        </tr>
-        @endforeach
+            </tr>
+            @endforeach
         </table>
         {{ $txns->appends(request()->input())->links() }}
         

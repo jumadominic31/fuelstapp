@@ -115,7 +115,7 @@ class TxnsController extends Controller
             $pdf = PDF::loadView('pdf.txns', ['txns' => $txns, 'tot_coll' => $tot_coll, 'company_details' => $company_details, 'curr_date' => $curr_date]);
             $pdf->setPaper('A4', 'landscape');
             return $pdf->stream('txns.pdf');
-        } 
+        }
 
         return View('txns.index', ['txns' => $txns, 'vehregno' => $vehregno, 'receiptno' => $receiptno, 'attendants' => $attendants, 'stations' => $stations, 'totals' => $totals]);
     }
@@ -151,6 +151,16 @@ class TxnsController extends Controller
         $txn->save();
         
         return redirect('/txns')->with('success', 'Transaction details updated');
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $txn = Txn::find($id);
+        $txn->amount = 0;
+        $txn->cancelled  = '1';
+        $txn->save();
+
+        return redirect('/txns')->with('success', 'Transaction id '.$id.' cancelled');
     }
 
     public function loyaltySummary(Request $request)

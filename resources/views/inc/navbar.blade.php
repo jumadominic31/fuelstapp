@@ -52,9 +52,8 @@
                 <li>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="{{ route('eodays.new.create') }}">Create EOD</a></li>
-                        <li><a href="{{ route('readings.create') }}">Create End of Day Report</a></li>
-                        <li><a href="{{ route('eodays.index') }}">Daily Report List</a></li>
+                        <li><a href="{{ route('eodays.new.create') }}">Create End of Shift</a></li>
+                        <li><a href="{{ route('eodays.daily.index') }}">List End of Shift</a></li>
                         <li><a href="{{ route('monthly.get') }}">Monthly Report List</a></li>
                         <li><a href="{{ route('reports.vehicles') }}">Vehicles Fueling Report</a></li>
                         <li><a href="{{ route('loyalty.index') }}">Loyalty Program</a></li>
