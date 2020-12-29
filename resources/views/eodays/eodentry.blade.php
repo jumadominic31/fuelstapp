@@ -18,6 +18,7 @@
         {{Form::text('shift',  $shift, ['class' => 'form-control', 'id' => 'shift', 'readonly' => 'true'])}}
     </div>
     <div>
+        <h2>Actual Collection by Attendants</h2>
         <table class="table table-striped table-bordered table-hover table-condensed">
             <tr>
                 <th style="display:none;">Attendant ID</th>
@@ -39,7 +40,51 @@
             @endforeach
         </table> 
     </div>
+    
     <div>
+        <h2>Other Sales</h2>
+        <table class="table table-striped table-bordered table-hover table-condensed">
+            <tr>
+                <th style="display:none;">Product ID</th>
+                <th>Product</th>
+                <th>Cash</th>
+                <th>Mpesa</th>
+                <th>Credit</th>
+                <th>Visa</th>
+            </tr>
+            @foreach($products as $product)
+            <tr>
+                <td style="display:none;">{{Form::text('itemid_'.$product['id'], $product['id'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+                <td>{{Form::text('itemname_'.$product['id'], $product['name'], ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+                <td>{{Form::text('itemcash_'.$product['id'] , '0' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('itemmpesa_'.$product['id'] , '0' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('itemcredit_'.$product['id'] , '0' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('itemvisa_'.$product['id'] , '0' , ['class' => 'form-control'])}}</td>
+            </tr>
+            @endforeach
+        </table> 
+    </div>
+
+    <div>
+        <h2>Credit Collection</h2>
+        <table class="table table-striped table-bordered table-hover table-condensed">
+            <tr>
+                <th>Vehicle Reg</th>
+                <th>Owner Name</th>
+                <th>Amount</th>
+            </tr>
+            @foreach ($creditcoll  as $credit)
+            <tr>
+                <td>{{Form::text('creditveh_'.$credit['id'], $credit['vehicle']['num_plate'], ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+                <td>{{Form::text('creditowner_'.$credit['id'], $credit['owner']['fullname'], ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+                <td>{{Form::text('creditcash_'.$credit['id'] , $credit['amount'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+            </tr>
+            @endforeach
+        </table> 
+    </div>
+
+    <div>
+        <h2>Pump Readings</h2>
         <table class="table table-striped table-bordered table-hover table-condensed">
             <tr>
                 <th style="display:none;">Pump ID</th>
@@ -62,6 +107,7 @@
         </table>
     </div>
     <div>
+        <h2>Tank Readings</h2>
         <table class="table table-striped table-bordered table-hover table-condensed">
             <tr>
                 <th style="display:none;">Tank ID</th>

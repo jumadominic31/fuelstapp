@@ -19,7 +19,10 @@ use App\Pumpshift;
 use App\Tankreading;
 use App\Tankshift;
 use App\Actualcollection;
+use App\Othersale;
 use App\Txn;
+use App\Product;
+use App\Vehcollection;
 use Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use JWTAuth;
@@ -121,6 +124,8 @@ class EodaysController extends Controller
             $tanks = Tank::join('tankreadings', 'tanks.id', '=', 'tankreadings.tank_id')->where('tanks.companyid', '=', $companyid)->where('tanks.stationid', '=', $stationid)->where(function ($query) use($lastshift) { $query->where('tankreadings.shift_id', '=', $lastshift->id)->orWhereNull('tankreadings.shift_id'); })->select('tanks.id', 'tanks.tankname', 'tankreadings.reading')->orderBy('tanks.tankname', 'asc')->get();
         }
 
+        $products = Product::where('company_id', '=', $companyid)->select('id', 'name')->get();
+
         //get fuel rates
         $rates = Rate::where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->where('start_rate_date', '<=', $shift_date )->where('end_rate_date', '>=', $shift_date )->pluck('sellprice', 'fueltype')->toArray();
         // $diesel_rate = $rates['diesel'];
@@ -139,8 +144,11 @@ class EodaysController extends Controller
         if (empty($attendants)){
             $attendants = User::where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->pluck('fullname', 'id')->sortBy('fullname')->toArray();
         }
+
+        //show credit collections
+        $creditcoll = Vehcollection::where('company_id', '=', $companyid)->where(DB::raw('date(created_at)'),'=', $shift_date)->get();
                 
-        return View('eodays.eodentry', ['stationid' => $stationid, 'station' => $station, 'shift_date' => $shift_date, 'shift' => $shift, 'pumps' => $pumps, 'tanks' => $tanks, 'attendants' => $attendants, 'rates' => $rates ]);
+        return View('eodays.eodentry', ['stationid' => $stationid, 'station' => $station, 'shift_date' => $shift_date, 'shift' => $shift, 'pumps' => $pumps, 'tanks' => $tanks, 'attendants' => $attendants, 'rates' => $rates, 'products' => $products, 'creditcoll' => $creditcoll]);
     }
 
     public function posteodentry(Request $request)
@@ -195,6 +203,9 @@ class EodaysController extends Controller
             //Check the tanks
             $tanks = Tank::where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->select('id', 'tankname')->get();
 
+            // Check the products
+            $products = Product::where('company_id', '=', $companyid)->select('id', 'name')->get();
+
             //Save actual collections
             foreach ($attendants  as $id => $att) 
             {
@@ -219,6 +230,30 @@ class EodaysController extends Controller
                 ${'coll_'.$id}->total = ${'atttotal_'.$id};
                 ${'coll_'.$id}->updated_by = $userid;
                 ${'coll_'.$id}->save();
+            }
+
+            //Save other sales 
+            foreach ($products as $prod)
+            {
+                ${'itemcash_'.$prod['id']} = $request->input('itemcash_'.$prod['id']);
+                ${'itemmpesa_'.$prod['id']} = $request->input('itemmpesa_'.$prod['id']);
+                ${'itemcredit_'.$prod['id']} = $request->input('itemcredit_'.$prod['id']);
+                ${'itemvisa_'.$prod['id']} =$request->input('itemvisa_'.$prod['id']);
+                ${'itemtotal_'.$prod['id']} = ${'itemcash_'.$prod['id']} + ${'itemmpesa_'.$prod['id']} + ${'itemcredit_'.$prod['id']} + ${'itemvisa_'.$prod['id']};
+
+                ${'othersale_'.$prod['id']} = new Othersale;
+                ${'othersale_'.$prod['id']}->shift_id = $new_shift->id;
+                ${'othersale_'.$prod['id']}->date = $shift_date;
+                ${'othersale_'.$prod['id']}->shift = $shift;
+                ${'othersale_'.$prod['id']}->company_id = $companyid;
+                ${'othersale_'.$prod['id']}->product_id = $prod['id']; 
+                ${'othersale_'.$prod['id']}->cash = ${'itemcash_'.$prod['id']};
+                ${'othersale_'.$prod['id']}->mpesa = ${'itemmpesa_'.$prod['id']};
+                ${'othersale_'.$prod['id']}->credit = ${'itemcredit_'.$prod['id']};
+                ${'othersale_'.$prod['id']}->visa = ${'itemvisa_'.$prod['id']};
+                ${'othersale_'.$prod['id']}->total = ${'itemtotal_'.$prod['id']};
+                ${'othersale_'.$prod['id']}->updated_by = $userid;
+                ${'othersale_'.$prod['id']}->save();
             }
 
             //Save pump readings
@@ -372,6 +407,10 @@ class EodaysController extends Controller
         //get total sales per attendant as per txns table
         $poscoll = Txn::where('companyid', '=', $companyid)->select('userid', 'paymethod', DB::raw('sum(amount) as tot_amount'))->where(DB::raw('date(created_at)'), '=', $shift->date)->groupBy('userid')->groupBy('paymethod')->get();
 
+        //show tot for other products
+        $othersale = Othersale::where('company_id', '=', $companyid)->where('shift_id', '=', $id)->get();
+        $othersumm = Othersale::where('company_id', '=', $companyid)->select(DB::raw('sum(cash) as tot_cash'), DB::raw('sum(mpesa) as tot_mpesa'), DB::raw('sum(credit) as tot_credit'), DB::raw('sum(visa) as tot_visa'), DB::raw('sum(total) as tot_total'))->where('shift_id', '=', $id)->first();
+
         //calculate shortages
         $short = [];
         $res = [];
@@ -392,13 +431,16 @@ class EodaysController extends Controller
         $shortage = collect($res);
         $tot_short = $actsumm['tot_total'] - $pumptots['total_sales'];
 
+        //show credit collections
+        $creditcoll = Vehcollection::where('company_id', '=', $companyid)->where(DB::raw('date(created_at)'),'=', $shift->date)->get();
+
         if ($request->submitBtn == 'DownloadRpt') {
-            $pdf = PDF::loadView('pdf.eodreport', ['company_details' => $company_details, 'shift' => $shift, 'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'curr_date' => $curr_date]);
+            $pdf = PDF::loadView('pdf.eodreport', ['company_details' => $company_details, 'shift' => $shift, 'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'curr_date' => $curr_date, 'creditcoll' => $creditcoll]);
             $pdf->setPaper('A4', 'portrait');
             return $pdf->stream('shiftreport.pdf');
         } 
 
-        return View('eodays.daily.show', ['shift' => $shift,'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll]);
+        return View('eodays.daily.show', ['shift' => $shift,'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'creditcoll' => $creditcoll]);
     }
 
     public function vehiclesrpt(Request $request){

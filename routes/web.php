@@ -276,6 +276,17 @@ Route::group(['middleware' => 'auth'] , function () {
 
         Route::resource('owners', 'OwnersController');
 
+        //Other products
+        Route::resource('products', 'ProductsController');
+
+        //Other products
+        Route::resource('collections', 'CollectionsController');
+
+        Route::get('/getcreditownbal/{veh_id}', [
+            'uses' => 'CollectionsController@getcreditownbal', 
+            'as' => 'collections.getcreditownbal'
+        ]);
+
         // Vehicles
         Route::resource('vehicles', 'VehiclesController');        
 

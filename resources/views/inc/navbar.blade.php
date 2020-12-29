@@ -44,6 +44,7 @@
                         <li><a href="{{ route('users.index') }}">Users</a></li>
                         <li><a href="{{ route('pumps.index') }}">Pumps</a></li>
                         <li><a href="{{ route('tanks.index') }}">Tanks</a></li>
+                        <li><a href="{{ route('products.index') }}">Other Products</a></li>
                         <li><a href="{{ route('vehicles.index') }}">Vehicles</a></li>
                         <li><a href="{{ route('owners.index') }}">Owners</a></li>
                     </ul>
@@ -59,7 +60,14 @@
                         <li><a href="{{ route('loyalty.index') }}">Loyalty Program</a></li>
                     </ul>
                 </li>
-                <li><a href="{{ route('dashboard.getstarted') }}">Get Started</a></li>
+                <li>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Collections/Recoveries<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{{ route('collections.index') }}">Collections</a></li>
+                        <li><a href="{{ route('eodays.daily.index') }}">Recoveries</a></li>
+                    </ul>
+                </li>
+                {{-- <li><a href="{{ route('dashboard.getstarted') }}">Get Started</a></li> --}}
             </ul>
 
             <!-- Right Side Of Navbar -->

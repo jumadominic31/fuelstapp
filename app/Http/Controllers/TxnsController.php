@@ -14,11 +14,14 @@ use App\Station;
 use App\Pump;
 use App\Company;
 use App\User;
+use App\Credit;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use JWTAuth;
 use Auth;
 use Excel;
 use PDF;
+use App\Classes\AfricasTalkingGateway;
+use App\Classes\AfricasTalkingGatewayException;
 
 class TxnsController extends Controller
 {
@@ -233,35 +236,75 @@ class TxnsController extends Controller
         $stationid = $request->input('stationid');
         $station = Station::select('station')->where('id', '=', $stationid)->pluck('station')->first();
         $vehregno = $request->input('vehregno');
+        $paymethod = $request->input('paymethod');
+        $amount = $request->input('amount');
         
         if ($validator->fails()){
             $response = array('response' => $validator->messages(), 'success' => false);
             return $response;
         } else {
+            $veh_id = Vehicle::where('companyid', '=', $companyid)->where('num_plate', '=', $vehregno)->select('id')->pluck('id')->first();
             $owner_id = Vehicle::join('owners', 'vehicles.owner_id', '=', 'owners.id')->select('owners.id')->where('vehicles.companyid', '=', $companyid)->where('vehicles.num_plate', '=', $vehregno)->pluck('owners.id')->first();
             $owner_phone = Vehicle::join('owners', 'vehicles.owner_id', '=', 'owners.id')->select('owners.phone')->where('vehicles.companyid', '=', $companyid)->where('vehicles.num_plate', '=', $vehregno)->pluck('owners.phone')->first();
             if ($owner_id == NULL){
                 $owner_id = 0;
             }
-            $txnid          = new Txn();
-            $lasttxnid      = $txnid->orderBy('id', 'desc')->pluck('id')->first();
-            $newtxnid       = $lasttxnid + 1;
-            $txn = new Txn;
-            //$txn->userid    = $request->input('userid');
-            $txn->userid    = $user->id;
-            $txn->receiptno = date('y').date('m').date('d').$newtxnid;
-            $txn->stationid = $stationid;
-            // $txn->stationid = $user->stationid;
-            $txn->companyid = $companyid;
-            $txn->vehregno  = $vehregno;
-            $txn->ownerid   = $owner_id;
-            $txn->amount    = $request->input('amount');
-            $txn->volume    = $request->input('volume');
-            $txn->sellprice = $request->input('sellprice');
-            $txn->fueltype  = $request->input('fueltype');
-            $txn->paymethod = $request->input('paymethod');
-            $txn->pumpid    = $request->input('pumpid');
-            $txn->save();
+            $txn = collect();
+
+            DB::transaction(function () use($companyid, $user, $request, $vehregno, $stationid, $amount, $paymethod, $owner_id, $veh_id, &$txn) {
+               
+                $txnid          = new Txn();
+                $lasttxnid      = $txnid->orderBy('id', 'desc')->pluck('id')->first();
+                $newtxnid       = $lasttxnid + 1;
+                $txn = new Txn;
+                //$txn->userid    = $request->input('userid');
+                $txn->userid    = $user->id;
+                $txn->receiptno = date('y').date('m').date('d').$newtxnid;
+                $txn->stationid = $stationid;
+                // $txn->stationid = $user->stationid;
+                $txn->companyid = $companyid;
+                $txn->vehregno  = $vehregno;
+                $txn->ownerid   = $owner_id;
+                $txn->amount    = $amount;
+                $txn->volume    = $request->input('volume');
+                $txn->sellprice = $request->input('sellprice');
+                $txn->fueltype  = $request->input('fueltype');
+                $txn->paymethod = $paymethod;
+                $txn->pumpid    = $request->input('pumpid');
+                $txn->save();
+
+                //add transaction to credit table if paymethod is credit
+                if ($paymethod == 'Credit')
+                {
+                    // check if there is an existing entry for this customer
+                    $prevclosing = Credit::where('company_id', '=', $companyid)->where('vehicle_id', '=', $veh_id)->select('closing')->orderBy('id', 'desc')->pluck('closing')->first();
+
+                    if (is_null($prevclosing))
+                    {
+                        //if doesnt exist credit
+                        $opening = 0;
+                        $closing = 0 - $amount;
+                    }
+                    else
+                    {
+                        // if exists get closing bal, new bal
+                        $opening = $prevclosing;
+                        $closing = $prevclosing - $amount;
+                    }        
+                    
+                    $credit = new Credit();
+                    $credit->vehicle_id = $veh_id;
+                    $credit->company_id = $companyid;
+                    $credit->owner_id = $owner_id;
+                    $credit->opening = $opening;
+                    $credit->purchase = 0 - $amount;
+                    $credit->payment = 0;
+                    $credit->closing = $closing;
+                    $credit->updated_by = $user->id;
+                    $credit->save();
+                }
+
+            });
 
             if ($companyid == '3')
             {

@@ -18,7 +18,7 @@ class RatesController extends Controller
     {
         $companyid = Auth::user()->companyid;
         $stationid = Auth::user()->stationid;
-        $rates = Rate::where('companyid', '=', $companyid)->orderBy('created_at','desc')->paginate(7);
+        $rates = Rate::where('companyid', '=', $companyid)->orderBy('updated_at','desc')->paginate(10);
         return View('rates.index',['rates'=> $rates]);
     }
 

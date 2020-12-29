@@ -136,7 +136,7 @@
     <h2>Actual Collection</h2>
     <table class="table table-striped table-bordered table-hover table-condensed">
         <tr>
-            <th>Attendant ID</th>
+            <th>Attendant</th>
             <th>Cash</th>
             <th>MPesa</th>
             <th>Credit</th>
@@ -165,6 +165,38 @@
 </div>
 
 <div>
+    <h2>Other Products Sales</h2>
+    <table class="table table-striped table-bordered table-hover table-condensed">
+        <tr>
+            <th>Product</th>
+            <th>Cash</th>
+            <th>MPesa</th>
+            <th>Credit</th>
+            <th>Visa</th>
+            <th>Total</th>
+        </tr>
+        @foreach($othersale as $other)
+        <tr>
+            <td>{{$other['product']['name']}}</td>
+            <td style="text-align: right;">{{number_format($other['cash'], 2)}}</td>
+            <td style="text-align: right;">{{number_format($other['mpesa'], 2)}}</td>
+            <td style="text-align: right;">{{number_format($other['credit'], 2)}}</td>
+            <td style="text-align: right;">{{number_format($other['visa'], 2)}}</td>
+            <td style="text-align: right;">{{number_format($other['total'], 2)}}</td>
+        </tr>
+        @endforeach
+        <tr>
+            <th>Totals</th>
+            <th style="text-align: right;">{{number_format($othersumm['tot_cash'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($othersumm['tot_mpesa'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($othersumm['tot_credit'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($othersumm['tot_visa'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($othersumm['tot_total'], 2)}}</th>
+        </tr>
+    </table>
+</div>
+
+<div>
     <h2>Attendant Shortages</h2>
     <table class="table table-striped table-bordered table-hover table-condensed">
         <tr>
@@ -182,6 +214,24 @@
             <th style="text-align: right;">{{number_format($tot_short, 2)}}</th>
         </tr>
     </table>
+</div>
+
+<div>
+    <h2>Credit Collection</h2>
+    <table class="table table-striped table-bordered table-hover table-condensed">
+        <tr>
+            <th>Vehicle Reg</th>
+            <th>Owner Name</th>
+            <th>Amount</th>
+        </tr>
+        @foreach ($creditcoll  as $credit)
+        <tr>
+            <td>{{Form::text('creditveh_'.$credit['id'], $credit['vehicle']['num_plate'], ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+            <td>{{Form::text('creditowner_'.$credit['id'], $credit['owner']['fullname'], ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+            <td>{{Form::text('creditcash_'.$credit['id'] , $credit['amount'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+        </tr>
+        @endforeach
+    </table> 
 </div>
 
 {{-- <div>
