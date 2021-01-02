@@ -186,10 +186,6 @@ class EodaysController extends Controller
             $new_shift->shift = $shift;
             $new_shift->save();
 
-            // $diesel_rate = $rates['diesel'];
-            // $petrol_rate = $rates['petrol'];
-            // $kerosene_rate = $rates['kerosene'];
-
             //Check pumps with transactions
             $pumps = Pump::where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->select('id', 'pumpname', 'fueltype')->get();
 
@@ -406,6 +402,28 @@ class EodaysController extends Controller
         
         //get total sales per attendant as per txns table
         $poscoll = Txn::where('companyid', '=', $companyid)->select('userid', 'paymethod', DB::raw('sum(amount) as tot_amount'))->where(DB::raw('date(created_at)'), '=', $shift->date)->groupBy('userid')->groupBy('paymethod')->get();
+        $posatt = Txn::where('companyid', '=', $companyid)->select('userid')->where(DB::raw('date(created_at)'), '=', $shift->date)->distinct()->get();
+
+        $tcoll = ['cash' => 0, 'mpesa' => 0, 'credit' => 0, 'visa' => 0, 'total' => 0];
+        $tempcoll = [];
+
+        foreach ($posatt as $pcoll)
+        {
+            foreach ($poscoll as $pcoll2)
+            {
+                if ($pcoll['userid'] == $pcoll2['userid'])
+                {
+                    $tcoll['userid'] = $pcoll['userid'];
+                    if ($pcoll2['paymethod'] == 'Cash') { $tcoll['cash'] = $pcoll2['tot_amount']; };
+                    if ($pcoll2['paymethod'] == 'MPesa') { $tcoll['mpesa'] = $pcoll2['tot_amount']; };
+                    if ($pcoll2['paymethod'] == 'Credit') { $tcoll['credit'] = $pcoll2['tot_amount']; };
+                    if ($pcoll2['paymethod'] == 'Visa') { $tcoll['visa'] = $pcoll2['tot_amount']; };
+                    $tempcoll[] = $tcoll; 
+                }
+            }
+        }
+
+        $poscoll = collect($tempcoll);
 
         //show tot for other products
         $othersale = Othersale::where('company_id', '=', $companyid)->where('shift_id', '=', $id)->get();
@@ -433,14 +451,237 @@ class EodaysController extends Controller
 
         //show credit collections
         $creditcoll = Vehcollection::where('company_id', '=', $companyid)->where(DB::raw('date(created_at)'),'=', $shift->date)->get();
+        $credittot = Vehcollection::where('company_id', '=', $companyid)->where(DB::raw('date(created_at)'),'=', $shift->date)->sum('amount');
 
         if ($request->submitBtn == 'DownloadRpt') {
-            $pdf = PDF::loadView('pdf.eodreport', ['company_details' => $company_details, 'shift' => $shift, 'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'curr_date' => $curr_date, 'creditcoll' => $creditcoll]);
+            $pdf = PDF::loadView('pdf.eodreport', ['company_details' => $company_details, 'shift' => $shift, 'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'curr_date' => $curr_date, 'creditcoll' => $creditcoll, 'credittot' => $credittot]);
             $pdf->setPaper('A4', 'portrait');
             return $pdf->stream('shiftreport.pdf');
         } 
 
-        return View('eodays.daily.show', ['shift' => $shift,'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'creditcoll' => $creditcoll]);
+        return View('eodays.daily.show', ['shift' => $shift,'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'creditcoll' => $creditcoll, 'credittot' => $credittot]);
+    }
+
+    public function editeodentry($id)
+    {
+        $companyid = Auth::user()->companyid;
+        
+        $shift_id = $id;
+        $shiftqry = Shift::where('company_id', '=', $companyid)->where('id', '=', $id)->select('date', 'station_id', 'shift')->first();
+        $stationid = $shiftqry->station_id;
+        $shift_date = $shiftqry->date;
+        $shift = $shiftqry->shift;  
+        $station = Station::where('companyid', '=', $companyid)->where('id', '=', $stationid)->select('station')->pluck('station')->first();
+
+        //get pump and tanks readings from database
+        $pumps = Pumpshift::where('company_id', '=', $companyid)->where('shift_id', '=', $id)->get();
+        $tanks = Tankshift::where('company_id', '=', $companyid)->where('shift_id', '=', $id)->get();
+
+        //get from actual collection
+        $attcoll = Actualcollection::where('company_id', '=', $companyid)->where('shift_id', '=', $id)->get();
+
+        // get from other sale
+        $products = Othersale::where('company_id', '=', $companyid)->where('shift_id', '=', $id)->get();
+
+        // get from credit
+        $creditcoll = Vehcollection::where('company_id', '=', $companyid)->where(DB::raw('date(created_at)'),'=', $shift_date)->get();
+
+        //get fuel rates
+        $rates = Rate::where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->where('start_rate_date', '<=', $shift_date )->where('end_rate_date', '>=', $shift_date )->pluck('sellprice', 'fueltype')->toArray();
+
+        if (!(array_key_exists('diesel', $rates)) || !(array_key_exists('petrol', $rates)) || !(array_key_exists('kerosene', $rates)) )
+        {
+            return redirect('/eodays/new/create')->with('error', 'Please ask the administrator to update ALL rates first (diesel, petrol and kerosene)'    );
+        }
+
+        //show credit collections
+        $creditcoll = Vehcollection::where('company_id', '=', $companyid)->where(DB::raw('date(created_at)'),'=', $shift_date)->get();
+
+        //Check attendants with transations
+        // $attendants = Txn::join('users', 'txns.userid', '=', 'users.id' )->where('txns.companyid', '=', $companyid)->where('txns.stationid', '=', $stationid)->where(DB::raw('date(txns.created_at)'),'=',$shift_date)->select('txns.userid as userid', 'users.fullname as fullname')->distinct()->pluck('fullname', 'userid')->sortBy('users.fullname')->toArray();
+
+        // what happens if not trasactions are recorded = show all attendants
+        // if (empty($attendants)){
+            $attendants = User::where('companyid', '=', $companyid)->pluck('fullname', 'id')->sortBy('fullname')->toArray();
+        // }
+
+        return View('eodays.eodedit', ['stationid' => $stationid, 'station' => $station, 'shift_id' => $shift_id,'shift_date' => $shift_date, 'shift' => $shift, 'pumps' => $pumps, 'tanks' => $tanks, 'attendants' => $attendants, 'attcoll' => $attcoll,'rates' => $rates, 'products' => $products, 'creditcoll' => $creditcoll]);
+    }
+
+    public function updateeodentry(Request $request, $id)
+    {
+        $user = Auth::user();
+        $companyid = $user->companyid;
+        $userid = $user->id;
+
+        $this->validate($request, [
+            '*' => 'bail|required'
+        ]);
+        
+        $shift_id = $id;
+        $stationid = $request->input('stationid');
+        $shift_date = $request->input('shift_date');
+        $shift = $request->input('shift');
+
+        //get fuel rates
+        $rates = Rate::where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->where('start_rate_date', '<=', $shift_date )->where('end_rate_date', '>=', $shift_date )->pluck('sellprice', 'fueltype')->toArray();
+
+        if (!(array_key_exists('diesel', $rates)) || !(array_key_exists('petrol', $rates)) || !(array_key_exists('kerosene', $rates)) )
+        {
+            return redirect('/eodays/new/create')->with('error', 'Please ask the administrator to update ALL rates first (diesel, petrol and kerosene) D, P, K '    );
+        }
+        
+        DB::transaction(function () use($stationid, $companyid, $userid, $shift_id, $shift_date, $shift, $request, $rates) {
+            
+            //get pump and tanks readings from database
+            $pumps = Pumpshift::where('company_id', '=', $companyid)->where('shift_id', '=', $shift_id)->get();
+            $tanks = Tankshift::where('company_id', '=', $companyid)->where('shift_id', '=', $shift_id)->get();
+
+            //get from actual collection
+            $attcoll = Actualcollection::where('company_id', '=', $companyid)->where('shift_id', '=', $shift_id)->get();
+
+            // get from other sale
+            $products = Othersale::where('company_id', '=', $companyid)->where('shift_id', '=', $shift_id)->get();
+
+            //Save actual collections
+            foreach ($attcoll  as $att) 
+            {
+                $attid = $request->input('attid_'.$att['attendant_id']); // get from db
+                ${'attcash_'.$att['attendant_id']} = $request->input('attcash_'.$att['attendant_id']);
+                ${'attmpesa_'.$att['attendant_id']} = $request->input('attmpesa_'.$att['attendant_id']);
+                ${'attcredit_'.$att['attendant_id']} = $request->input('attcredit_'.$att['attendant_id']);
+                ${'attvisa_'.$att['attendant_id']} =$request->input('attvisa_'.$att['attendant_id']);
+                ${'atttotal_'.$att['attendant_id']} = ${'attcash_'.$att['attendant_id']} + ${'attmpesa_'.$att['attendant_id']} + ${'attcredit_'.$att['attendant_id']} + ${'attvisa_'.$att['attendant_id']};
+
+                ${'coll_'.$att['attendant_id']} = Actualcollection::where('shift_id', '=', $shift_id)->where('attendant_id', '=', $att['attendant_id'])->first();
+                ${'coll_'.$att['attendant_id']}->shift_id = $shift_id;
+                ${'coll_'.$att['attendant_id']}->date = $shift_date;
+                ${'coll_'.$att['attendant_id']}->shift = $shift;
+                ${'coll_'.$att['attendant_id']}->company_id = $companyid;
+                ${'coll_'.$att['attendant_id']}->station_id = $stationid;
+                ${'coll_'.$att['attendant_id']}->attendant_id = $attid; // rem to change
+                ${'coll_'.$att['attendant_id']}->cash = ${'attcash_'.$att['attendant_id']};
+                ${'coll_'.$att['attendant_id']}->mpesa = ${'attmpesa_'.$att['attendant_id']};
+                ${'coll_'.$att['attendant_id']}->credit = ${'attcredit_'.$att['attendant_id']};
+                ${'coll_'.$att['attendant_id']}->visa = ${'attvisa_'.$att['attendant_id']};
+                ${'coll_'.$att['attendant_id']}->total = ${'atttotal_'.$att['attendant_id']};
+                ${'coll_'.$att['attendant_id']}->updated_by = $userid;
+                ${'coll_'.$att['attendant_id']}->save();
+            }
+
+            //Save other sales 
+            foreach ($products as $prod)
+            {
+                ${'itemcash_'.$prod['product_id']} = $request->input('itemcash_'.$prod['product_id']);
+                ${'itemmpesa_'.$prod['product_id']} = $request->input('itemmpesa_'.$prod['product_id']);
+                ${'itemcredit_'.$prod['product_id']} = $request->input('itemcredit_'.$prod['product_id']);
+                ${'itemvisa_'.$prod['product_id']} =$request->input('itemvisa_'.$prod['product_id']);
+                ${'itemtotal_'.$prod['product_id']} = ${'itemcash_'.$prod['product_id']} + ${'itemmpesa_'.$prod['product_id']} + ${'itemcredit_'.$prod['product_id']} + ${'itemvisa_'.$prod['product_id']};
+
+                ${'othersale_'.$prod['product_id']} = Othersale::where('shift_id', '=', $shift_id)->where('product_id', '=', $prod['product_id'])->first();
+                ${'othersale_'.$prod['product_id']}->shift_id = $shift_id;
+                ${'othersale_'.$prod['product_id']}->date = $shift_date;
+                ${'othersale_'.$prod['product_id']}->shift = $shift;
+                ${'othersale_'.$prod['product_id']}->company_id = $companyid;
+                ${'othersale_'.$prod['product_id']}->product_id = $prod['product_id']; 
+                ${'othersale_'.$prod['product_id']}->cash = ${'itemcash_'.$prod['product_id']};
+                ${'othersale_'.$prod['product_id']}->mpesa = ${'itemmpesa_'.$prod['product_id']};
+                ${'othersale_'.$prod['product_id']}->credit = ${'itemcredit_'.$prod['product_id']};
+                ${'othersale_'.$prod['product_id']}->visa = ${'itemvisa_'.$prod['product_id']};
+                ${'othersale_'.$prod['product_id']}->total = ${'itemtotal_'.$prod['product_id']};
+                ${'othersale_'.$prod['product_id']}->updated_by = $userid;
+                ${'othersale_'.$prod['product_id']}->save();
+            }
+
+            //Save pump readings
+            foreach ($pumps as $pump)
+            {
+                if ($pump['fuel_type'] == 'Diesel')
+                {
+                    $unitprice = $rates['diesel'];
+                }
+                else if ($pump['fuel_type'] == 'Petrol')
+                {
+                    $unitprice = $rates['petrol'];
+                }
+                else if  ($pump['fuel_type'] == 'Kerosene')
+                {
+                    $unitprice = $rates['kerosene'];
+                }
+                $pumpid = $request->input('pumpid_'.$pump['pump_id']); // get from db
+                ${'pumpnew_'.$pump['pump_id']} = $request->input('pumpnew_'.$pump['pump_id']);
+                ${'pumpprev_'.$pump['pump_id']} = $request->input('pumpprev_'.$pump['pump_id']);
+                ${'pumpatt_'.$pump['pump_id']} = $request->input('pumpatt_'.$pump['pump_id']);
+                ${'pumpret_'.$pump['pump_id']} = $request->input('pumpret_'.$pump['pump_id']);
+                ${'pumpsales_'.$pump['pump_id']} = ${'pumpnew_'.$pump['pump_id']} - ( ${'pumpprev_'.$pump['pump_id']} + ${'pumpret_'.$pump['pump_id']} ) ;
+                // $unitprice = 100;
+                ${'pumptotal_'.$pump['pump_id']} = ${'pumpsales_'.$pump['pump_id']} * $unitprice; // check unit price again
+
+                ${'preading_'.$pump['pump_id']} = Pumpreading::where('shift_id', '=', $shift_id)->where('pump_id', '=', $pump['pump_id'])->first();
+                ${'preading_'.$pump['pump_id']}->pump_id    = $pumpid; 
+                ${'preading_'.$pump['pump_id']}->company_id = $companyid;
+                ${'preading_'.$pump['pump_id']}->station_id = $stationid;
+                ${'preading_'.$pump['pump_id']}->date = $shift_date;
+                ${'preading_'.$pump['pump_id']}->shift = $shift;
+                ${'preading_'.$pump['pump_id']}->shift_id = $shift_id;
+                ${'preading_'.$pump['pump_id']}->reading = ${'pumpnew_'.$pump['pump_id']};
+                ${'preading_'.$pump['pump_id']}->attendant_id = ${'pumpatt_'.$pump['pump_id']} ;
+                ${'preading_'.$pump['pump_id']}->save();
+                
+                ${'pumpshift_'.$pump['pump_id']} = Pumpshift::where('shift_id', '=', $shift_id)->where('pump_id', '=', $pump['pump_id'])->first();
+                ${'pumpshift_'.$pump['pump_id']}->shift_id = $shift_id;
+                ${'pumpshift_'.$pump['pump_id']}->date = $shift_date;
+                ${'pumpshift_'.$pump['pump_id']}->shift = $shift;
+                ${'pumpshift_'.$pump['pump_id']}->fuel_type = $pump['fuel_type']; 
+                ${'pumpshift_'.$pump['pump_id']}->company_id = $companyid;
+                ${'pumpshift_'.$pump['pump_id']}->station_id = $stationid;
+                ${'pumpshift_'.$pump['pump_id']}->pump_id    = $pumpid; 
+                ${'pumpshift_'.$pump['pump_id']}->opening = ${'pumpprev_'.$pump['pump_id']};
+                ${'pumpshift_'.$pump['pump_id']}->returned = ${'pumpret_'.$pump['pump_id']};
+                ${'pumpshift_'.$pump['pump_id']}->closing = ${'pumpnew_'.$pump['pump_id']};
+                ${'pumpshift_'.$pump['pump_id']}->sales = ${'pumpsales_'.$pump['pump_id']};
+                ${'pumpshift_'.$pump['pump_id']}->unitprice = $unitprice; // check unit price again
+                ${'pumpshift_'.$pump['pump_id']}->total = ${'pumptotal_'.$pump['pump_id']};
+                ${'pumpshift_'.$pump['pump_id']}->attendant_id = ${'pumpatt_'.$pump['pump_id']} ;
+                ${'pumpshift_'.$pump['pump_id']}->save();
+            }
+
+            //Save tank readings
+            foreach ($tanks as $tank)
+            {
+                $tankid = $request->input('tankid_'.$tank['tank_id']); // to get from db
+                ${'tanknew_'.$tank['tank_id']} = $request->input('tanknew_'.$tank['tank_id']); //new reading
+                ${'tankprev_'.$tank['tank_id']} = $request->input('tankprev_'.$tank['tank_id']); //prev reading
+                ${'tankpurc_'.$tank['tank_id']} = $request->input('tankpurc_'.$tank['tank_id']);
+                ${'tanksold_'.$tank['tank_id']} = ( ${'tankprev_'.$tank['tank_id']} + ${'tankpurc_'.$tank['tank_id']} ) - ${'tanknew_'.$tank['tank_id']}  ;
+
+                ${'treading_'.$tank['tank_id']} = Tankreading::where('shift_id', '=', $shift_id)->where('tank_id', '=', $tank['tank_id'])->first();
+                ${'treading_'.$tank['tank_id']}->company_id = $companyid;
+                ${'treading_'.$tank['tank_id']}->station_id = $stationid;
+                ${'treading_'.$tank['tank_id']}->shift_id = $shift_id;
+                ${'treading_'.$tank['tank_id']}->date = $shift_date;
+                ${'treading_'.$tank['tank_id']}->shift = $shift;
+                ${'treading_'.$tank['tank_id']}->reading = ${'tanknew_'.$tank['tank_id']};
+                ${'treading_'.$tank['tank_id']}->tank_id    = $tankid;
+                ${'treading_'.$tank['tank_id']}->save();
+
+                ${'tankshift_'.$tank['tank_id']} = Tankshift::where('shift_id', '=', $shift_id)->where('tank_id', '=', $tank['tank_id'])->first();
+                ${'tankshift_'.$tank['tank_id']}->shift_id = $shift_id;
+                ${'tankshift_'.$tank['tank_id']}->date = $shift_date;
+                ${'tankshift_'.$tank['tank_id']}->shift = $shift;
+                ${'tankshift_'.$tank['tank_id']}->company_id = $companyid;
+                ${'tankshift_'.$tank['tank_id']}->station_id = $stationid;
+                ${'tankshift_'.$tank['tank_id']}->tank_id    = $tankid; // to change
+                ${'tankshift_'.$tank['tank_id']}->opening = ${'tankprev_'.$tank['tank_id']};
+                ${'tankshift_'.$tank['tank_id']}->purchased = ${'tankpurc_'.$tank['tank_id']};
+                ${'tankshift_'.$tank['tank_id']}->closing = ${'tanknew_'.$tank['tank_id']};
+                ${'tankshift_'.$tank['tank_id']}->sold = ${'tanksold_'.$tank['tank_id']};
+                ${'tankshift_'.$tank['tank_id']}->save();
+            }
+        });
+
+        return redirect('/eodays/daily/index')->with('success', 'Shift Details Updated');
+
     }
 
     public function vehiclesrpt(Request $request){

@@ -85,8 +85,8 @@ class TxnsController extends Controller
             }
         }
         else{
-            $txns = $txns->where(DB::raw('date(txns.created_at)'),'>=',$last_10_date);
-            $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'),'>=',$last_10_date);
+            $txns = $txns->where(DB::raw('date(txns.created_at)'),'>=',$curr_date);
+            $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'),'>=',$curr_date);
         }
         $txns = $txns->orderBy('created_at','desc')->limit(300)->paginate(30);
         
@@ -110,7 +110,7 @@ class TxnsController extends Controller
         }
         $totals['tot_coll'] = $totals['cash'] + $totals['mpesa'] + $totals['credit'] + $totals['visa'];
         // $totals = implode(', ', $totals);
-        
+        $tot_coll = $totals['tot_coll'];
         
         // $totals['tot_coll'] = $tot_coll->pluck('tot_amount')->first();
         
@@ -236,6 +236,8 @@ class TxnsController extends Controller
         $stationid = $request->input('stationid');
         $station = Station::select('station')->where('id', '=', $stationid)->pluck('station')->first();
         $vehregno = $request->input('vehregno');
+        $vehregno = strtoupper($vehregno);
+        $vehregno = str_replace( ' ', '', $vehregno);
         $paymethod = $request->input('paymethod');
         $amount = $request->input('amount');
         

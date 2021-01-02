@@ -34,11 +34,11 @@
                 </div>
                 <div class="form-group">
                     {{Form::label('status', 'Status *')}}
-                    {{Form::select('status', ['Active' => 'Active', 'Inactive' => 'Inactive'], 'Active', ['class' => 'form-control'])}}
+                    {{Form::select('status', ['' => '', 'active' => 'Active', 'inactive' => 'Inactive'], $user->status, ['class' => 'form-control'])}}
                 </div>
                 <div class="form-group">
                     {{Form::label('usertype', 'User Type *')}}
-                    {{Form::select('usertype', ['attendant' => 'Attendant', 'admin' => 'Admin', 'stationadmin' => 'Stationadmin'], $user->usertype, ['class' => 'form-control'])}}
+                    {{Form::select('usertype', ['' => '', 'attendant' => 'Attendant', 'admin' => 'Admin', 'stationadmin' => 'Stationadmin'], $user->usertype, ['class' => 'form-control'])}}
                 </div>
                 {{Form::hidden('_method', 'PUT')}}
                 {{Form::submit('Submit')}}

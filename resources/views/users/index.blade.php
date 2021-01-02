@@ -20,6 +20,7 @@
         <th>Full Name</th>
         <th>Station Name</th>
         <th>User Type</th>
+        <th>Status</th>
         <th></th>
         <th></th>
         </tr>
@@ -31,6 +32,7 @@
         <td>{{$user['fullname']}}</td>
         <td>{{$user['station']['station']}}</td>
         <td>{{$user['usertype']}}</td>
+        <td>{{$user['status']}}</td>
         <td><a class="btn btn-default" href="{{ route('users.edit', ['user' => $user->id]) }}">Edit</a></td>
         <td>
             {!!Form::open(['action' => ['UsersController@destroy', $user->id],'method' => 'POST', 'class' => 'pull-left', 'onsubmit' => 'return confirm("Are you sure?")'])!!}

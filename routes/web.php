@@ -63,9 +63,10 @@ Route::post('/users/signin', [
 
 Route::group(['middleware' => 'auth'] , function () {
     //Dashboard
-    Route::get('/', function () {
-        return view('dashboard.index');
-    });
+    Route::get('/', [
+        'uses' => 'DashboardController@index' , 
+        'as' => 'dashboard.index'
+    ]);
     
     Route::get('/dashboard', [
         'uses' => 'DashboardController@index' , 
@@ -199,6 +200,16 @@ Route::group(['middleware' => 'auth'] , function () {
     Route::post('/eodays/new/posteodentry', [
         'uses' => 'EodaysController@posteodentry' , 
         'as' => 'eodays.new.posteodentry'
+    ]);
+
+    Route::get('/eodays/edit/eodentry/{id}', [
+        'uses' => 'EodaysController@editeodentry' , 
+        'as' => 'eodays.edit.eodentry'
+    ]);
+
+    Route::match(array('PUT', 'PATCH'), '/eodays/edit/eodentry/{id}', [
+        'uses' => 'EodaysController@updateeodentry' , 
+        'as' => 'eodays.update.eodentry'
     ]);
 
     Route::get('/eodays/daily/index', [

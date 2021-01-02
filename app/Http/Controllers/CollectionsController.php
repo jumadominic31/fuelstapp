@@ -22,7 +22,7 @@ class CollectionsController extends Controller
     public function create()
     {
         $companyid = Auth::user()->companyid;
-        $vehicles = Vehicle::where('companyid', '=', $companyid)->pluck('num_plate', 'id')->all();
+        $vehicles = Vehicle::where('companyid', '=', $companyid)->orderBy('num_plate')->pluck('num_plate', 'id')->all();
         return view('collections.create', ['vehicles' => $vehicles]);
     }
 

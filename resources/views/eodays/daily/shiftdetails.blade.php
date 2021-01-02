@@ -14,6 +14,48 @@
 </table>
 
 <div>
+    <h2>Shift Sales Summary</h2>
+    <table class="table table-striped table-bordered table-hover table-condensed">
+        <tr>
+            <th colspan="2" style="text-align: center">Fuel</th>
+        </tr>
+        <tr>
+            <td>Diesel</td>
+            <td style="text-align: right;">{{number_format($pumptots['diesel_sales'], 2)}}</td>
+        </tr>
+        <tr>
+            <td>Petrol</td>
+            <td style="text-align: right;">{{number_format($pumptots['petrol_sales'], 2)}}</td>
+        </tr>
+        <tr>
+            <td>Kerosene</td>
+            <td style="text-align: right;">{{number_format($pumptots['kerosene_sales'], 2)}}</td>
+        </tr>
+        <tr>
+            <th>Fuel Total</th>
+            <th style="text-align: right;">{{number_format($pumptots['total_sales'], 2)}}</th>
+        </tr>
+        <tr>
+            <th colspan="2" style="text-align: center">Other Products</th>
+        </tr>
+        @foreach($othersale as $other)
+        <tr>
+            <td>{{$other['product']['name']}}</td>
+            <td style="text-align: right;">{{number_format($other['total'], 2)}}</td>
+        </tr>
+        @endforeach
+        <tr>
+            <th>Other Products Total</th>
+            <th style="text-align: right;">{{number_format($othersumm['tot_total'], 2)}}</th>
+        </tr>
+        <tr>
+            <th>Total</th>
+            <th style="text-align: right;">{{number_format($othersumm['tot_total'] + $pumptots['total_sales'], 2)}}</th>
+        </tr>
+    </table>
+</div>
+
+<div>
     <h2>Pump Sales </h2>
     <table class="table table-striped table-bordered table-hover table-condensed">
         <tr>
@@ -226,11 +268,15 @@
         </tr>
         @foreach ($creditcoll  as $credit)
         <tr>
-            <td>{{Form::text('creditveh_'.$credit['id'], $credit['vehicle']['num_plate'], ['class' => 'form-control', 'readonly' => 'true'])}}</td>
-            <td>{{Form::text('creditowner_'.$credit['id'], $credit['owner']['fullname'], ['class' => 'form-control', 'readonly' => 'true'])}}</td>
-            <td>{{Form::text('creditcash_'.$credit['id'] , $credit['amount'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
+            <td>{{$credit['vehicle']['num_plate']}}</td>
+            <td>{{$credit['owner']['fullname']}}</td>
+            <td style="text-align: right;">{{number_format($credit['amount'], 2)}}</td>
         </tr>
         @endforeach
+        <tr>
+            <th colspan="2" style="text-align: center">Total</th>
+            <th style="text-align: right;">{{number_format($credittot, 2)}}</th>
+        </tr>
     </table> 
 </div>
 
