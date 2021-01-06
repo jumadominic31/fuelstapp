@@ -135,11 +135,6 @@ Route::group(['middleware' => 'auth'] , function () {
         'as' => 'loyalty.index'
     ]);
 
-    Route::post('/loyalty', [
-        'uses' => 'TxnsController@loyaltySummary',
-        'as' => 'loyalty.filter'
-    ]);
-
     Route::get('/loyalty/{vehregno}', [
         'uses' => 'TxnsController@loyaltyDetails',
         'as' => 'loyalty.show'

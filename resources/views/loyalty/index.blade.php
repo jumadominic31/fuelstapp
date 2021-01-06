@@ -7,7 +7,7 @@
 <h3> Filter </h3>
 <input type="checkbox" autocomplete="off" onchange="checkfilter(this.checked);"/>
 <div id="filteroptions" style="display: none ;">
-    {!! Form::open(['action' => 'TxnsController@loyaltySummary', 'method' => 'POST', 'enctype' => 'multipart/form-data']) !!}
+    {!! Form::open(['action' => 'TxnsController@loyaltySummary', 'method' => 'GET', 'enctype' => 'multipart/form-data']) !!}
         <div class="form-group">
             {{Form::label('vehregno', 'Vehicle Reg No')}}
             {{Form::text('vehregno', '', ['class' => 'form-control', 'placeholder' => 'Vehicle Reg No'])}}
@@ -47,7 +47,7 @@
         @endforeach
 
         </table>
-
+        {{ $txns->appends(request()->input())->links() }}
         
     @else
       <p>No txns To Display</p>

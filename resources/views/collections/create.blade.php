@@ -7,6 +7,10 @@
 <br>
 {!! Form::open(['action' => 'CollectionsController@store', 'method' => 'POST', 'enctype' => 'multipart/form-data']) !!}
     <div class="form-group">
+        {{Form::label('date', 'Collection Date')}}
+        {{Form::text('date', $curr_date, ['class' => 'date form-control', 'placeholder' => 'yyyy-mm-dd'])}}
+    </div>
+    <div class="form-group">
         {{Form::label('veh_id', 'Vehicle Reg No')}}
         {{Form::select('veh_id', ['' => ''] + $vehicles, '', ['class' => 'form-control', 'id' => 'veh_id'])}}
     </div>

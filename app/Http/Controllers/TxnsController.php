@@ -174,28 +174,36 @@ class TxnsController extends Controller
         $curr_date = date('Y-m-d');
         //$stationid = Auth::user()->stationid;
         
-        if ($request->isMethod('POST')){
+        $txns = Txn::select('vehregno', DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->groupBy('vehregno');
+
+        if ($request->submitBtn == 'Submit'){
             $this->validate($request, [
                 'month' => 'required'
             ]);
-            $vehregno = $request->input('vehregno');
-            $month = $request->input('month');
-            session(['fuelstapp.loyaltymonth' => $month]);
-            $txns = Txn::select('vehregno', DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $month);
-            if ($vehregno != NULL){
-                $txns = $txns->where('vehregno','like','%'.$vehregno.'%');
-            }
-            $txns = $txns->groupBy('vehregno')->limit(50)->get();
-            
-            if ($request->submitBtn == 'CreatePDF') {
-                $pdf = PDF::loadView('pdf.loyalty', ['txns' => $txns, 'company_details' => $company_details, 'curr_date' => $curr_date, 'month' => $month]);
-                $pdf->setPaper('A4', 'landscape');
-                return $pdf->stream('loyalty.pdf');
-            } 
-            return View('loyalty.index', ['txns' => $txns ]);
         }
-        session(['fuelstapp.loyaltymonth' => $curr_month]);
-        $txns = Txn::select('vehregno', DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $curr_month)->groupBy('vehregno')->paginate(30);
+        
+        $vehregno = $request->input('vehregno');
+        $month = $request->input('month');
+        // session(['fuelstapp.loyaltymonth' => $month]);
+        if ($month != NULL){
+            $txns = $txns->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $month);
+        }
+        else {
+            $txns = $txns->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $curr_month);
+        }
+        if ($vehregno != NULL){
+            $txns = $txns->where('vehregno','like','%'.$vehregno.'%');
+        }
+        
+        if ($request->submitBtn == 'CreatePDF') {
+            $txns = $txns->limit(150)->get(); //beyond 150 it gives 500 error in prod
+            $pdf = PDF::loadView('pdf.loyalty', ['txns' => $txns, 'company_details' => $company_details, 'curr_date' => $curr_date, 'month' => $month]);
+            $pdf->setPaper('A4', 'landscape');
+            return $pdf->stream('loyalty.pdf');
+        } 
+
+        // session(['fuelstapp.loyaltymonth' => $curr_month]);
+        $txns = $txns->paginate(30);
         return View('loyalty.index', ['txns' => $txns]);
     }
 

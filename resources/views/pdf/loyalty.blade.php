@@ -21,12 +21,14 @@
 
     <table class="table table-striped" >
 	    <tr>
+			<th></th>
 		    <th>Vehicle Reg No</th>
 		    <th>Total Volume</th>
 	    </tr>
 
-	    @foreach($txns as $txn)
+	    @foreach($txns as $index => $txn)
 	    <tr>
+			<td>{{$index + 1}}</td>
 	    	<td>{{$txn['vehregno']}}</td>
 		    <td>{{$txn['total_vol']}}</td>
 		</tr>

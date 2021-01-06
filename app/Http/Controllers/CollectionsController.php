@@ -9,6 +9,7 @@ use App\Vehcollection;
 use App\Credit;
 use App\Owner;
 use Auth;
+use Carbon\Carbon;
 
 class CollectionsController extends Controller
 {
@@ -16,14 +17,15 @@ class CollectionsController extends Controller
     {
         $companyid = Auth::user()->companyid;
         $collections = Credit::where('company_id', '=', $companyid)->orderBy('created_at','desc')->paginate(10);
-        return View('collections.index')->with('collections', $collections);
+        return View('collections.index', ['collections' => $collections]);
     }
 
     public function create()
     {
         $companyid = Auth::user()->companyid;
         $vehicles = Vehicle::where('companyid', '=', $companyid)->orderBy('num_plate')->pluck('num_plate', 'id')->all();
-        return view('collections.create', ['vehicles' => $vehicles]);
+        $curr_date = Carbon::now()->format('Y-m-d');
+        return view('collections.create', ['vehicles' => $vehicles, 'curr_date' => $curr_date]);
     }
 
     public function store(Request $request)
@@ -32,6 +34,7 @@ class CollectionsController extends Controller
         $userid = $user->id;
         $companyid = $user->companyid;
         $this->validate($request, [
+            'date' => 'required',
             'veh_id' => 'required',
             'amount' => 'required',
             'paymethod' => 'required'
@@ -45,6 +48,7 @@ class CollectionsController extends Controller
 
             // update the credit collection table
             $vehcoll = new Vehcollection();
+            $vehcoll->coll_date = $request->input('date');
             $vehcoll->vehicle_id = $veh_id;
             $vehcoll->company_id = $companyid;
             $vehcoll->owner_id = $owner_id;

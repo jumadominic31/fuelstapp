@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Vehicle;
 use App\Owner;
@@ -16,7 +17,7 @@ class VehiclesController extends Controller
         $user = Auth::user();
         $companyid = $user->companyid;
         
-        $owners = Owner::where('companyid', '=', $companyid)->pluck('fullname','id')->all();
+        $owners = Owner::where('companyid', '=', $companyid)->orderBy('fullname')->pluck('fullname','id')->all();
 
         $vehicles = Vehicle::where('companyid', '=', $companyid)->orderBy('id','asc');
 	    $count = Vehicle::where('companyid', '=', $companyid);
@@ -43,7 +44,7 @@ class VehiclesController extends Controller
     {
     	$user = Auth::user();
         $companyid = $user->companyid;
-        $owners = Owner::where('companyid', '=', $companyid)->pluck('fullname','id')->all();
+        $owners = Owner::where('companyid', '=', $companyid)->orderBy('fullname')->pluck('fullname','id')->all();
         return view('vehicles.create', ['owners' => $owners]);
     }
 
@@ -58,13 +59,16 @@ class VehiclesController extends Controller
         ]);
         
         $vehicle = new Vehicle;
-        $vehicle->num_plate = str_replace(' ', '', strtoupper($request->input('num_plate')));
+        $num_plate = str_replace(' ', '', strtoupper($request->input('num_plate')));
+        $vehicle->num_plate = $num_plate;
         $vehicle->owner_id = $request->input('owner_id');
         $vehicle->category = $request->input('category');
         $vehicle->make = $request->input('make');
         $vehicle->colour = $request->input('colour');
         $vehicle->companyid = $companyid;
         $vehicle->save();
+
+        DB::statement("UPDATE txns INNER JOIN vehicles ON vehicles.num_plate = txns.vehregno SET txns.ownerid = vehicles.owner_id WHERE txns.vehregno = '$num_plate'");
 
         return redirect('/vehicles')->with('success', 'Vehicle Added');
 
@@ -79,7 +83,7 @@ class VehiclesController extends Controller
     {
     	$user = Auth::user();
         $companyid = $user->companyid;
-        $owners = Owner::where('companyid', '=', $companyid)->pluck('fullname','id')->all();
+        $owners = Owner::where('companyid', '=', $companyid)->orderBy('fullname')->pluck('fullname','id')->all();
         $vehicle = Vehicle::where('companyid', '=', $companyid)->find($id);
         if ($vehicle ==  NULL)
         {
@@ -97,13 +101,16 @@ class VehiclesController extends Controller
             'owner_id' => 'required'
         ]);
         
+        $num_plate = str_replace(' ', '', strtoupper($request->input('num_plate')));
         $vehicle = Vehicle::find($id);
-        $vehicle->num_plate = str_replace(' ', '', strtoupper($request->input('num_plate')));
+        $vehicle->num_plate = $num_plate;
         $vehicle->owner_id = $request->input('owner_id');
         $vehicle->category = $request->input('category');
         $vehicle->make = $request->input('make');
         $vehicle->colour = $request->input('colour');
         $vehicle->save();
+
+        DB::statement("UPDATE txns INNER JOIN vehicles ON vehicles.num_plate = txns.vehregno SET txns.ownerid = vehicles.owner_id WHERE txns.vehregno = '$num_plate'");
 
         return redirect('/vehicles')->with('success', 'Vehicle Details Updated');
     }
