@@ -11,6 +11,7 @@ use App\Company;
 use App\Rate;
 use App\Station;
 use App\User;
+use App\Owner;
 use App\Pump;
 use App\Shift;
 use App\Tank;
@@ -366,6 +367,7 @@ class EodaysController extends Controller
 
         //shift details
         $shift = Shift::where('company_id', '=', $companyid)->where('id', '=', $id)->first();
+        $stationid = $shift->station_id;
 
         //pump shift per fuel type
         //show tot vol and sales per fuel type
@@ -401,29 +403,8 @@ class EodaysController extends Controller
         $actsumm = Actualcollection::where('company_id', '=', $companyid)->select(DB::raw('sum(cash) as tot_cash'), DB::raw('sum(mpesa) as tot_mpesa'), DB::raw('sum(credit) as tot_credit'), DB::raw('sum(visa) as tot_visa'), DB::raw('sum(total) as tot_total'))->where('shift_id', '=', $id)->first();
         
         //get total sales per attendant as per txns table
-        $poscoll = Txn::where('companyid', '=', $companyid)->select('userid', 'paymethod', DB::raw('sum(amount) as tot_amount'))->where(DB::raw('date(created_at)'), '=', $shift->date)->groupBy('userid')->groupBy('paymethod')->get();
-        $posatt = Txn::where('companyid', '=', $companyid)->select('userid')->where(DB::raw('date(created_at)'), '=', $shift->date)->distinct()->get();
-
-        $tcoll = ['cash' => 0, 'mpesa' => 0, 'credit' => 0, 'visa' => 0, 'total' => 0];
-        $tempcoll = [];
-
-        foreach ($posatt as $pcoll)
-        {
-            foreach ($poscoll as $pcoll2)
-            {
-                if ($pcoll['userid'] == $pcoll2['userid'])
-                {
-                    $tcoll['userid'] = $pcoll['userid'];
-                    if ($pcoll2['paymethod'] == 'Cash') { $tcoll['cash'] = $pcoll2['tot_amount']; };
-                    if ($pcoll2['paymethod'] == 'MPesa') { $tcoll['mpesa'] = $pcoll2['tot_amount']; };
-                    if ($pcoll2['paymethod'] == 'Credit') { $tcoll['credit'] = $pcoll2['tot_amount']; };
-                    if ($pcoll2['paymethod'] == 'Visa') { $tcoll['visa'] = $pcoll2['tot_amount']; };
-                    $tempcoll[] = $tcoll; 
-                }
-            }
-        }
-
-        $poscoll = collect($tempcoll);
+        $poscoll = Txn::select(DB::raw("userid, sum(if(paymethod = 'Cash', amount, 0)) as 'Cash', sum(if(paymethod = 'MPesa', amount, 0)) as 'MPesa', sum(if(paymethod = 'Credit', amount, 0)) as 'Credit', sum(if(paymethod = 'Visa', amount, 0)) as 'Visa', sum(amount) as 'total'"))->where(DB::raw('date(created_at)'), '=', $shift->date)->where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->groupBy('userid')->get();
+        $postots = Txn::select(DB::raw("sum(if(paymethod = 'Cash', amount, 0)) as 'Cash', sum(if(paymethod = 'MPesa', amount, 0)) as 'MPesa', sum(if(paymethod = 'Credit', amount, 0)) as 'Credit', sum(if(paymethod = 'Visa', amount, 0)) as 'Visa', sum(amount) as 'total'"))->where(DB::raw('date(created_at)'), '=', $shift->date)->where('companyid', '=', $companyid)->where('stationid', '=', $stationid)->first();
 
         //show tot for other products
         $othersale = Othersale::where('company_id', '=', $companyid)->where('shift_id', '=', $id)->get();
@@ -454,12 +435,12 @@ class EodaysController extends Controller
         $credittot = Vehcollection::where('company_id', '=', $companyid)->where(DB::raw('date(created_at)'),'=', $shift->date)->sum('amount');
 
         if ($request->submitBtn == 'DownloadRpt') {
-            $pdf = PDF::loadView('pdf.eodreport', ['company_details' => $company_details, 'shift' => $shift, 'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'curr_date' => $curr_date, 'creditcoll' => $creditcoll, 'credittot' => $credittot]);
+            $pdf = PDF::loadView('pdf.eodreport', ['company_details' => $company_details, 'shift' => $shift, 'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'postots' => $postots, 'othersale' => $othersale, 'othersumm' => $othersumm, 'curr_date' => $curr_date, 'creditcoll' => $creditcoll, 'credittot' => $credittot]);
             $pdf->setPaper('A4', 'portrait');
             return $pdf->stream('shiftreport.pdf');
         } 
 
-        return View('eodays.daily.show', ['shift' => $shift,'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'othersale' => $othersale, 'othersumm' => $othersumm, 'creditcoll' => $creditcoll, 'credittot' => $credittot]);
+        return View('eodays.daily.show', ['shift' => $shift,'pumpshift' => $pumpshift, 'tankshift' => $tankshift, 'tanksumm' => $tanksumm, 'actcoll' => $actcoll, 'pumptots' => $pumptots, 'pumpatt' => $pumpatt, 'actsumm' => $actsumm, 'shortage' => $shortage, 'tot_short' => $tot_short, 'poscoll' => $poscoll, 'postots' => $postots, 'othersale' => $othersale, 'othersumm' => $othersumm, 'creditcoll' => $creditcoll, 'credittot' => $credittot]);
     }
 
     public function editeodentry($id)
@@ -690,6 +671,8 @@ class EodaysController extends Controller
         $dt = Carbon::now();
 
         $monthdt = $request->input('month');
+        $owners = Owner::where('companyid', '=', $companyid)->orderBy('own_num')->select(DB::raw("CONCAT(own_num, ' - ',fullname) AS owner"),'id')->pluck('owner', 'id')->all();
+        $owner_id = $request->input('owner_id');
 
         if ($monthdt != NULL)
         {
@@ -715,7 +698,12 @@ class EodaysController extends Controller
         }
         $statement = $statement . ", sum(txns.volume) as 'total'";
 
-        $vehreport = Txn::join('owners', 'txns.ownerid', '=', 'owners.id')->select(DB::raw("$statement"))->where(DB::raw('DATE_FORMAT(txns.created_at, "%Y-%m")'), '=', "$monthdt")->where('txns.ownerid', '!=', '0')->where('txns.companyid', '=', '3')->groupBy('txns.vehregno')->orderBy('txns.ownerid', 'asc')->get();
+        $vehreport = Txn::join('owners', 'txns.ownerid', '=', 'owners.id')->select(DB::raw("$statement"));
+        if ($owner_id != NULL)
+        {
+            $vehreport = $vehreport->where('txns.ownerid', '=', $owner_id);
+        }
+        $vehreport = $vehreport->where(DB::raw('DATE_FORMAT(txns.created_at, "%Y-%m")'), '=', "$monthdt")->where('txns.ownerid', '!=', '0')->where('txns.companyid', '=', $companyid)->groupBy('txns.vehregno')->orderBy('txns.ownerid', 'asc')->get();
 
         if ($request->submitBtn == 'DownloadExcel') {
             $vehreport = $vehreport->toArray();
@@ -731,7 +719,7 @@ class EodaysController extends Controller
             })->download('xlsx');
         } 
 
-        return view('reports.vehicles', ['daysinmonth' => $daysinmonth, 'startmon' => $startmon,'startmondt' => $startmondt, 'vehreport' => $vehreport]);
+        return view('reports.vehicles', ['daysinmonth' => $daysinmonth, 'startmon' => $startmon,'startmondt' => $startmondt, 'vehreport' => $vehreport, 'owners' => $owners]);
     }
 
     public function monthlyrpt(Request $request){

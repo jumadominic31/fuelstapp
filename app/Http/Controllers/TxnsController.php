@@ -30,8 +30,8 @@ class TxnsController extends Controller
     {
         $companyid = Auth::user()->companyid;
         $company_details = Company::where('id', '=', $companyid)->get();
-        $stations = Station::where('companyid', '=', $companyid)->pluck('station', 'id')->all();
-        $attendants = User::where('companyid', '=', $companyid)->pluck('fullname', 'id')->all();
+        $stations = Station::where('companyid', '=', $companyid)->orderBy('station')->pluck('station', 'id')->all();
+        $attendants = User::where('companyid', '=', $companyid)->orderBy('fullname')->pluck('fullname', 'id')->all();
         $curr_date = date('Y-m-d');
         $last_10_date = date('Y-m-d', strtotime('-1 days'));
         $stationid = Auth::user()->stationid;
@@ -174,7 +174,8 @@ class TxnsController extends Controller
         $curr_date = date('Y-m-d');
         //$stationid = Auth::user()->stationid;
         
-        $txns = Txn::select('vehregno', DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->groupBy('vehregno');
+        $vehicles = Vehicle::where('companyid', '=', $companyid)->select('num_plate')->get()->toArray();
+        $txns = Txn::select('vehregno', DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->whereNotIn('vehregno', $vehicles)->groupBy('vehregno');
 
         if ($request->submitBtn == 'Submit'){
             $this->validate($request, [
@@ -184,7 +185,7 @@ class TxnsController extends Controller
         
         $vehregno = $request->input('vehregno');
         $month = $request->input('month');
-        // session(['fuelstapp.loyaltymonth' => $month]);
+        session(['fuelstapp.loyaltymonth' => $month]);
         if ($month != NULL){
             $txns = $txns->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $month);
         }
@@ -202,17 +203,29 @@ class TxnsController extends Controller
             return $pdf->stream('loyalty.pdf');
         } 
 
-        // session(['fuelstapp.loyaltymonth' => $curr_month]);
+        session(['fuelstapp.loyaltymonth' => $curr_month]);
+        $txns_count = $txns->get()->count();
         $txns = $txns->paginate(30);
-        return View('loyalty.index', ['txns' => $txns]);
+        return View('loyalty.index', ['txns' => $txns, 'txns_count' => $txns_count]);
     }
 
     public function loyaltyDetails($vehregno)
     {
         $companyid = Auth::user()->companyid;
+        // $company_details = Company::where('id', '=', $companyid)->get();
+        // $curr_date = date('Y-m-d');
         $month = session('fuelstapp.loyaltymonth');
         
-        $txns = Txn::where('companyid', '=', $companyid)->where('vehregno','=',$vehregno)->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $month)->orderBy('created_at','desc')->paginate(30);
+        $txns = Txn::where('companyid', '=', $companyid)->where('vehregno','=',$vehregno)->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $month)->orderBy('created_at','desc');
+
+        // if ($request->submitBtn == 'CreatePDF') {
+        //     $txns = $txns->limit(150)->get(); //beyond 150 it gives 500 error in prod
+        //     $pdf = PDF::loadView('pdf.nonmemtxns', ['txns' => $txns, 'company_details' => $company_details, 'curr_date' => $curr_date, 'month' => $month]);
+        //     $pdf->setPaper('A4', 'landscape');
+        //     return $pdf->stream('loyalty.pdf');
+        // }
+
+        $txns = $txns->paginate(30);
 
         return view('loyalty.show',['txns'=> $txns]);
     }
@@ -374,7 +387,7 @@ class TxnsController extends Controller
     public function salessumm(Request $request)
     {
         $companyid = Auth::user()->companyid;
-        $curr_datetime = date('Y-m-d H:i:s');
+        $curr_date = date('Y-m-d');
         $stationid = Auth::user()->stationid;
         $stations = Station::where('companyid', '=', $companyid)->pluck('station','id')->toArray();
 
@@ -398,6 +411,9 @@ class TxnsController extends Controller
             else{
                 $txns = $txns->where(DB::raw('date(txns.created_at)'), '=', $summ_date_1);
             }
+        }
+        else {
+            $txns = $txns->where(DB::raw('date(txns.created_at)'), '=', $curr_date);
         }
 
         if (Auth::user()->usertype == 'stationadmin'){ 

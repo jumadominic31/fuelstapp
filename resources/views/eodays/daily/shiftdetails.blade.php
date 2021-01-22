@@ -280,12 +280,11 @@
     </table> 
 </div>
 
-{{-- <div>
-    {{$poscoll}}
-    <h2>**UPDATE -- Collection POS - To get data from the txns table</h2>
+<div>
+    <h2>Collection from POS</h2>
     <table class="table table-striped table-bordered table-hover table-condensed">
         <tr>
-            <th>Attendant ID</th>
+            <th>Attendant</th>
             <th>Cash</th>
             <th>MPesa</th>
             <th>Credit</th>
@@ -295,35 +294,23 @@
         @foreach($poscoll as $pcoll)
             <tr>
                 <td>{{$pcoll['user']['fullname']}}</td>
-                <td>
-                    @if ($pcoll['paymethod'] == 'Cash')
-                        {{number_format($pcoll['tot_amount'], 2)}}
-                    @else
-                        {{number_format(0, 2)}}
-                    @endif
-                </td>
-                <td>
-                    @if ($pcoll['paymethod'] == 'MPesa')
-                        {{number_format($pcoll['tot_amount'], 2)}}
-                    @else
-                    {{number_format(0, 2)}}
-                    @endif
-                </td>
-                <td>0</td>
-                <td>0</td>
-                <td>0</td>
+                <td style="text-align: right;">{{number_format($pcoll['Cash'], 2)}}</td>
+                <td style="text-align: right;">{{number_format($pcoll['MPesa'], 2)}}</td>
+                <td style="text-align: right;">{{number_format($pcoll['Credit'], 2)}}</td>
+                <td style="text-align: right;">{{number_format($pcoll['Visa'], 2)}}</td>
+                <td style="text-align: right;">{{number_format($pcoll['total'], 2)}}</td>
             </tr>
         @endforeach
         <tr>
             <th>Total</th>
-            <th>Tot Cash</th>
-            <th>Tot Mpesa</th>
-            <th>Tot Credit</th>
-            <th>Tot Visa</th>
-            <th>Total</th>
+            <th style="text-align: right;">{{number_format($postots['Cash'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($postots['MPesa'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($postots['Credit'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($postots['Visa'], 2)}}</th>
+            <th style="text-align: right;">{{number_format($postots['total'], 2)}}</th>
         </tr>
     </table>
-</div> --}}
+</div>
 
 <div>
     <h2>Tank Reading (Volumes)</h2>

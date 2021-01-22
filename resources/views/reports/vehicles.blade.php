@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<h1>Vehicles Fueling Report </h1>
+<h1>Members Fueling Report </h1>
 <h2>Monthly Report</h2>
 <a class="pull-right btn btn-default" href="{{ route('reports.vehicles') }}">Reset</a>
 <h3> Filter </h3>
@@ -16,11 +16,16 @@
                             {{Form::label('month', 'Choose Month-Year')}}
                             {{Form::text('month', '', ['class' => 'form-control month', 'placeholder' => 'Choose Month yyyy-mm'])}}
                     </div></td>
+                    <td><div class="form-group">
+                        {{Form::label('owner_id', 'Choose Owner')}}
+                        {{Form::select('owner_id', ['' => ''] + $owners, '', ['class' => 'form-control'])}}
+                </div></td>
                 <tr>
                     <td>
                         {{Form::submit('Submit', ['class'=>'btn btn-primary', 'name' => 'submitBtn'])}}
                         {{Form::submit('DownloadExcel', ['class'=>'btn btn-primary', 'name' => 'submitBtn', 'formtarget' => '_blank'])}}
                     </td>
+                    <td></td>
                 </tr>
                 {!! Form::close() !!}
             </tr>

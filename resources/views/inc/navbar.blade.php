@@ -56,8 +56,9 @@
                         <li><a href="{{ route('eodays.new.create') }}">Create End of Shift</a></li>
                         <li><a href="{{ route('eodays.daily.index') }}">List End of Shift</a></li>
                         <li><a href="{{ route('monthly.get') }}">Monthly Report List</a></li>
-                        <li><a href="{{ route('reports.vehicles') }}">Vehicles Fueling Report</a></li>
-                        <li><a href="{{ route('loyalty.index') }}">Loyalty Program</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="{{ route('reports.vehicles') }}">Members Fueling Report</a></li>
+                        <li><a href="{{ route('loyalty.index') }}">Non-members Fueling Report</a></li>
                     </ul>
                 </li>
                 <li>
