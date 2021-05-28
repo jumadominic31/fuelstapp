@@ -57,7 +57,9 @@
                         <li><a href="{{ route('eodays.daily.index') }}">List End of Shift</a></li>
                         <li><a href="{{ route('monthly.get') }}">Monthly Report List</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="{{ route('reports.vehicles') }}">Members Fueling Report</a></li>
+                        <li><a href="{{ route('reports.vehicles') }}">Monthly Members Fueling Report</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="{{ route('loyalty.members') }}">Members Fueling Report</a></li>
                         <li><a href="{{ route('loyalty.index') }}">Non-members Fueling Report</a></li>
                     </ul>
                 </li>
@@ -65,7 +67,7 @@
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Collections/Recoveries<span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="{{ route('collections.index') }}">Collections</a></li>
-                        <li><a href="{{ route('eodays.daily.index') }}">Recoveries</a></li>
+                        <li><a href="#">Recoveries</a></li>
                     </ul>
                 </li>
                 {{-- <li><a href="{{ route('dashboard.getstarted') }}">Get Started</a></li> --}}

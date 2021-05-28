@@ -8,7 +8,18 @@
 
             <div class="panel-body">
               {!!Form::open(['action' => ['StationsController@update', $station->id],'method' => 'POST'])!!}
-                {{Form::text('station',$station->station,['class' => 'form-control','placeholder' => 'Station Name'])}}
+                <div class="form-group">
+                  {{Form::label('station', 'Station')}}
+                  {{Form::text('station', $station->station, ['class' => 'form-control', 'placeholder' => 'Station Name'])}}
+                </div>
+                <div class="form-group">
+                  {{Form::label('townid', 'Town')}}
+                  {{Form::select('townid', ['' => ''] + $towns, $station->town_id, ['class' => 'form-control'])}}
+              </div>
+                <div class="form-group">
+                    {{Form::label('status', 'Status')}}
+                    {{Form::select('status', ['' => '', '1' => 'Active', '0' => 'Inactive'] , $station->status,['class' => 'form-control'])}}
+                </div>
                 {{Form::hidden('_method', 'PUT')}}
                 {{Form::submit('Submit')}}
               {!! Form::close() !!}

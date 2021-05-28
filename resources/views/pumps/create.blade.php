@@ -31,7 +31,7 @@
     <script>
         $('#stationid').on('change', '', function(e){
             var stationid = e.target.value;
-            console.log(stationid);
+            
             $.get('/stationid/attendant/'+stationid, function(data){
                 $('#attendantid').empty();
                 $.each(data, function(index, attendantObj){

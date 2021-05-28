@@ -18,6 +18,7 @@
     <script type="text/javascript" src="{{ asset('js/bootstrap-datepicker.js') }}"></script>
     <link href="{{ asset('css/theme.css') }}" rel="stylesheet">
     <link href="{{ asset('css/footer.css') }}" rel="stylesheet">
+    @yield('styles')
 </head>
 <body>
     <div id="app">
@@ -52,9 +53,10 @@
       }
     </script>
     <script src="{{ asset('js/bootstrap.js') }}"></script>
+    @yield('javascripts')
     <footer id="footer">
     <!-- style = "background:#333333;color:#ffffff;text-align:center;padding:30px;margin-top:30px;" -->
-        Developed by Avanet Technologies 2017    
+        Developed by Avanet Technologies 2017-2021    
     </footer>
 </body>
 </html>

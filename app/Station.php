@@ -18,8 +18,9 @@ class Station extends Model
         return $this->hasMany('App\Eoday');
     }
 
-    public function stations(){
-        return $this->hasMany('App\User');
+    public function town()
+    {
+        return $this->belongsTo('App\Town', 'town_id');
     }
     
     public function rates(){

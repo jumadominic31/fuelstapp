@@ -16,6 +16,8 @@
           <tr>
           
           <th>Station Name</th>
+          <th>Town</th>
+          <th>Status</th>
           <th></th>
           <th></th>
           <th></th>
@@ -25,6 +27,8 @@
           
           
           <td>{{$station->station}}</td>
+          <td>{{$station->town->name}}</td>
+          <td>{{$station->status == '1' ? 'Active' : 'Inactive'}}</td>
           <td><a class="btn btn-default" href="{{ route('stations.show', ['station' => $station->id ]) }}">Details</a></td>
           <td><a class="btn btn-default" href="{{ route('stations.edit', ['station' => $station->id ]) }}"> Edit</a></td>
           <td>

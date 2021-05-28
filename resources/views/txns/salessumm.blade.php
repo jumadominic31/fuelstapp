@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<h1> Summary per Attendant </h1>
+<h1>Summary per Attendant </h1>
+<p>Default - Today's Sales</p>
 
 <a class="pull-right btn btn-default" href="{{ route('txns.salessumm.index') }}">Reset</a>
 <h3> Filter </h3>

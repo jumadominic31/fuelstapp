@@ -89,7 +89,8 @@ class TxnsController extends Controller
             $tot_coll = $tot_coll->where(DB::raw('date(txns.created_at)'),'>=',$curr_date);
         }
         $txns = $txns->orderBy('created_at','desc')->limit(300)->paginate(30);
-        
+        // $txns = $txns->orderBy('created_at','desc')->get();
+
         // $totals = $tot_coll->groupBy('paymethod')->get();
         $tots2 = $tot_coll->groupBy('paymethod')->get();
         $totals = ['cash' => 0, 'mpesa' => 0, 'credit' => 0, 'visa' => 0, 'tot_coll' => 0];
@@ -209,6 +210,50 @@ class TxnsController extends Controller
         return View('loyalty.index', ['txns' => $txns, 'txns_count' => $txns_count]);
     }
 
+    public function memloyaltySummary(Request $request)
+    {
+        $companyid = Auth::user()->companyid;
+        $curr_month = date('Y').'-'.date('m');
+        $company_details = Company::where('id', '=', $companyid)->get();
+        $curr_date = date('Y-m-d');
+
+        $owners = Owner::where('companyid', '=', $companyid)->pluck('fullname','id')->toArray();
+        // $txns = Txn::select('ownerid', DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->where('ownerid', '!=', '0')->groupBy('ownerid');
+        $vehicles = Vehicle::where('companyid', '=', $companyid)->select('num_plate')->get()->toArray();
+        $txns = Txn::select('ownerid', DB::raw('sum(volume) as total_vol'))->where('companyid', '=', $companyid)->whereIn('vehregno', $vehicles)->groupBy('ownerid');
+
+        if ($request->submitBtn == 'Submit'){
+            $this->validate($request, [
+                'month' => 'required'
+            ]);
+        }
+        
+        $owner_id = $request->input('owner_id');
+        $month = $request->input('month');
+        session(['fuelstapp.loyaltymonth' => $month]);
+        if ($month != NULL){
+            $txns = $txns->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $month);
+        }
+        else {
+            $txns = $txns->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $curr_month);
+        }
+        if ($owner_id != NULL){
+            $txns = $txns->where('ownerid','=', $owner_id);
+        }
+        
+        if ($request->submitBtn == 'CreatePDF') {
+            $txns = $txns->limit(150)->get(); //beyond 150 it gives 500 error in prod
+            $pdf = PDF::loadView('pdf.loyalty', ['txns' => $txns, 'company_details' => $company_details, 'curr_date' => $curr_date, 'month' => $month]);
+            $pdf->setPaper('A4', 'landscape');
+            return $pdf->stream('loyalty.pdf');
+        } 
+
+        session(['fuelstapp.loyaltymonth' => $curr_month]);
+        $txns_count = $txns->get()->count();
+        $txns = $txns->paginate(30);
+        return View('loyalty.members', ['txns' => $txns, 'txns_count' => $txns_count, 'owners' => $owners]);
+    }
+
     public function loyaltyDetails($vehregno)
     {
         $companyid = Auth::user()->companyid;
@@ -228,6 +273,27 @@ class TxnsController extends Controller
         $txns = $txns->paginate(30);
 
         return view('loyalty.show',['txns'=> $txns]);
+    }
+
+    public function memloyaltyDetails($ownerid)
+    {
+        $companyid = Auth::user()->companyid;
+        // $company_details = Company::where('id', '=', $companyid)->get();
+        // $curr_date = date('Y-m-d');
+        $month = session('fuelstapp.loyaltymonth');
+        
+        $txns = Txn::where('companyid', '=', $companyid)->where('ownerid','=',$ownerid)->where(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'), '=', $month)->orderBy('created_at','desc');
+
+        // if ($request->submitBtn == 'CreatePDF') {
+        //     $txns = $txns->limit(150)->get(); //beyond 150 it gives 500 error in prod
+        //     $pdf = PDF::loadView('pdf.nonmemtxns', ['txns' => $txns, 'company_details' => $company_details, 'curr_date' => $curr_date, 'month' => $month]);
+        //     $pdf->setPaper('A4', 'landscape');
+        //     return $pdf->stream('loyalty.pdf');
+        // }
+
+        $txns = $txns->paginate(30);
+
+        return view('loyalty.memshow',['txns'=> $txns]);
     }
 
     public function gettxns()

@@ -1,8 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<h1>Members Fueling Report </h1>
-<h2>Monthly Report</h2>
+<h1>Monthly Members Fueling Report </h1>
 <a class="pull-right btn btn-default" href="{{ route('reports.vehicles') }}">Reset</a>
 <h3> Filter </h3>
 <div class="row">

@@ -135,9 +135,19 @@ Route::group(['middleware' => 'auth'] , function () {
         'as' => 'loyalty.index'
     ]);
 
+    Route::get('/memloyalty', [
+        'uses' => 'TxnsController@memloyaltySummary',
+        'as' => 'loyalty.members'
+    ]);
+
     Route::get('/loyalty/{vehregno}', [
         'uses' => 'TxnsController@loyaltyDetails',
         'as' => 'loyalty.show'
+    ]);
+
+    Route::get('/memloyalty/{ownerid}', [
+        'uses' => 'TxnsController@memloyaltyDetails',
+        'as' => 'loyalty.memshow'
     ]);
 		
     Route::get('/txns', 'TxnsController@index')->name('txns.index');

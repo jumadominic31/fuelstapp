@@ -10,12 +10,12 @@
             {{Form::text('station', '', ['class' => 'form-control', 'placeholder' => 'Station Name'])}}
         </div>
         <div class="form-group">
-            {{Form::label('die_open_stock', 'Diesel Opening Stock')}}
-            {{Form::text('die_open_stock', '', ['class' => 'form-control', 'placeholder' => 'Diesel Opening Stock (litres)'])}}
+            {{Form::label('townid', 'Town')}}
+            {{Form::select('townid', ['' => ''] + $towns, '', ['class' => 'form-control'])}}
         </div>
         <div class="form-group">
-            {{Form::label('pet_open_stock', 'Petrol Opening Stock')}}
-            {{Form::text('pet_open_stock', '', ['class' => 'form-control', 'placeholder' => 'Petrol Opening Stock (litres)'])}}
+            {{Form::label('status', 'Status')}}
+            {{Form::select('status', ['' => '', '1' => 'Active', '0' => 'Inactive'], '1', ['class' => 'form-control'])}}
         </div>
         {{Form::submit('Submit', ['class'=>'btn btn-primary'])}}
     {!! Form::close() !!}

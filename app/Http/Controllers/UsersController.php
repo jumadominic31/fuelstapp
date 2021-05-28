@@ -89,7 +89,7 @@ class UsersController extends Controller
         $companyid = $userdetails[0]->companyid;
         $vehicles = Vehicle::select('num_plate')->where('companyid', '=', $companyid)->pluck('num_plate');
         $rates =  Rate::where('companyid', '=', $companyid)->where('start_rate_date', '<=', $rate_date)->where('end_rate_date','>=',$rate_date)->get();            
-        $stations = Station::where('companyid', '=', $companyid)->get();
+        $stations = Station::where('companyid', '=', $companyid)->where('status', '=', '1')->get();
         $pumps = Pump::where('companyid', '=', $companyid)->get();
         
         //to log user signin to user_logins table

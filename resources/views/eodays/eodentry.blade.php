@@ -122,7 +122,13 @@
                 <td>{{Form::text('tankname_'.$tank['id'], $tank['tankname'] , ['class' => 'form-control', 'readonly' => 'true'])}}</td>
                 <td>{{Form::text('tankprev_'.$tank['id'], $tank['reading'] , ['class' => 'form-control'])}}</td>
                 <td>{{Form::text('tankpurc_'.$tank['id'], '0' , ['class' => 'form-control'])}}</td>
-                <td>{{Form::text('tanknew_'.$tank['id'], '' , ['class' => 'form-control'])}}</td>
+                <td>{{Form::text('tanknew_'.$tank['id'], '' , ['class' => 'form-control'])}}
+                    {{-- <div class="form-group row">
+                        <div class="col-xs-4">{{Form::text('tanknew_'.$tank['id'], '' , ['class' => 'form-control', 'placeholder' => 'whole num'])}}</div>
+                        <div class="col-xs-4">{{Form::text('tanknewnum_'.$tank['id'], '' , ['class' => 'form-control', 'placeholder' => 'numerator'])}}</div>
+                        <div class="col-xs-4">{{Form::text('tanknewden_'.$tank['id'], '' , ['class' => 'form-control', 'placeholder' => 'denominator'])}}</div>
+                    </div> --}}
+                </td>
             </tr>
             @endforeach
         </table>

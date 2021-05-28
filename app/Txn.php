@@ -15,4 +15,9 @@ class Txn extends Model
     {
         return $this->belongsTo('App\Station', 'stationid');
     }
+
+    public function owner()
+    {
+        return $this->belongsTo('App\Owner', 'ownerid');
+    }
 }

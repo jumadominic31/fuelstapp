@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Station;
 use App\User;
 use App\Pump;
+use App\Town;
 use App\Eoday;
 use Validator;
 use PDF;
@@ -17,13 +18,14 @@ class StationsController extends Controller
     public function index()
     {
         $companyid = Auth::user()->companyid;
-        $stations = Station::where('companyid', '=', $companyid)->orderBy('created_at','asc')->paginate(7);
+        $stations = Station::where('companyid', '=', $companyid)->orderBy('station','asc')->paginate(10);
         return View('stations.index',['stations'=> $stations]);
     }
 
     public function create()
     {
-        return view('stations.create');
+        $towns = Town::select('name', 'id')->pluck('name', 'id')->toArray();
+        return view('stations.create', ['towns' => $towns]);
     }
 
     public function store(Request $request)
@@ -31,64 +33,18 @@ class StationsController extends Controller
         $companyid = Auth::user()->companyid;
         $this->validate($request, [
             'station' => 'required|unique:stations',
-            'die_open_stock' => 'required',
-            'pet_open_stock' => 'required'
+            'townid' => 'required',
+            'status' => 'required'
         ]);
-        
         
         $station = new Station;
         $station->station = $request->input('station');
+        $station->town_id = $request->input('townid');
+        $station->status = $request->input('status');
         $station->companyid = $companyid;
         $station->save();
 
-        $stationid = $station->id;
-
-        $eoday = new Eoday;
-        $eoday->stationid = $stationid;
-        $eoday->companyid = $companyid;
-        $eoday->fueltype = "Diesel";
-        $eoday->tot_vol = 0;
-        $eoday->rate = 0;
-        $eoday->tot_val = 0;
-        $eoday->tot_coll = 0;
-        $eoday->shortage = 0;
-        $eoday->open_stock = 0;
-        $eoday->purchases = 0;
-        $eoday->close_stock = $request->input('die_open_stock');
-        $eoday->banked = 0;
-        $eoday->mpesa = 0;
-        $eoday->credit = 0;
-        $eoday->expenses = 0;
-        $eoday->pos_cash = 0;
-        $eoday->pos_mpesa = 0;
-        $eoday->pos_credit = 0;
-        $eoday->pos_total = 0;
-        $eoday->save();
-
-        $eoday = new Eoday;
-        $eoday->stationid = $stationid;
-        $eoday->companyid = $companyid;
-        $eoday->fueltype = "Petrol";
-        $eoday->tot_vol = 0;
-        $eoday->rate = 0;
-        $eoday->tot_val = 0;
-        $eoday->tot_coll = 0;
-        $eoday->shortage = 0;
-        $eoday->open_stock = 0;
-        $eoday->purchases = 0;
-        $eoday->close_stock = $request->input('pet_open_stock');
-        $eoday->banked = 0;
-        $eoday->mpesa = 0;
-        $eoday->credit = 0;
-        $eoday->expenses = 0;
-        $eoday->pos_cash = 0;
-        $eoday->pos_mpesa = 0;
-        $eoday->pos_credit = 0;
-        $eoday->pos_total = 0;
-        $eoday->save();
-        
         return redirect('/stations')->with('success', 'Station Created');
-
     }
 
     public function show($id)
@@ -96,28 +52,33 @@ class StationsController extends Controller
         $companyid = Auth::user()->companyid;
         $station = Station::where('companyid', '=', $companyid)->find($id);
         $pumps = Pump::where('companyid', '=', $companyid)->where('stationid', '=', $id)->get();
-        $attendants = User::where('companyid', '=', $companyid)->where('stationid','=',$id)->where('usertype','=','attendant')->get();
-        return view('stations.show', ['station' => $station, 'pumps' => $pumps, 'attendants' => $attendants]);
+        // $attendants = User::where('companyid', '=', $companyid)->where('stationid','=',$id)->where('usertype','=','attendant')->get();
+        return view('stations.show', ['station' => $station, 'pumps' => $pumps]);
     }
 
     public function edit($id)
     {
         $companyid = Auth::user()->companyid;
+        $towns = Town::select('name', 'id')->pluck('name', 'id')->toArray();
         $station = Station::where('companyid', '=', $companyid)->find($id);
-        return view('stations.edit')->with('station', $station);
+
+        return view('stations.edit', ['station' => $station, 'towns' => $towns]);
     }
 
     public function update(Request $request, $id)
     {
         $companyid = Auth::user()->companyid;
         $this->validate($request, [
-            'station' => 'required|unique:stations'
+            'station' => 'required|unique:stations,station,'.$id,
+            'townid' => 'required'
         ]);
         
         
         $station = Station::find($id);
         $station->companyid = $companyid;
         $station->station = $request->input('station');
+        $station->town_id = $request->input('townid');
+        $station->status = $request->input('status');
         $station->save();
 
         return redirect('/stations')->with('success', 'Station Updated');

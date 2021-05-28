@@ -11,12 +11,12 @@
         {{Form::text('date', $curr_date, ['class' => 'date form-control', 'placeholder' => 'yyyy-mm-dd'])}}
     </div>
     <div class="form-group">
-        {{Form::label('veh_id', 'Vehicle Reg No')}}
-        {{Form::select('veh_id', ['' => ''] + $vehicles, '', ['class' => 'form-control', 'id' => 'veh_id'])}}
+        {{Form::label('owner_id', 'Choose Owner')}}
+        {{Form::select('owner_id', ['' => ''] + $owners, '', ['class' => 'form-control', 'id' => 'owner_id'])}}
     </div>
     <div class="form-group">
-        {{Form::label('owner_id', 'Owner Name')}}
-        {{Form::text('owner_id', '', ['class' => 'form-control', 'placeholder' => 'Owner Name', 'disabled' => 'true', 'id' => 'owner_id'])}}
+        {{Form::label('veh_id', 'Vehicle Reg No')}}
+        {{Form::select('veh_id', ['' => ''] , null, ['class' => 'form-control', 'id' => 'veh_id'])}}
     </div>
     <div class="form-group">
         {{Form::label('balance', 'Balance')}}
@@ -35,11 +35,16 @@
 {!! Form::close() !!}
 
 <script>
-    $('#veh_id').on('change', '', function(e){
-        var veh_id = e.target.value;
-        $.get('/getcreditownbal/'+veh_id, function(data){
-            $('#owner_id').val(data.owner_name);
+    $('#owner_id').on('change', '', function(e){
+        var owner_id = e.target.value;
+        $.get('/getcreditownbal/'+owner_id, function(data){
+            // console.log(data.vehicles);
+            $('#veh_id').empty();
+            $('#veh_id').append('<option value=""></option>');
             $('#balance').val(data.balance);
+            $.each(data.vehicles, function(index, veh){
+                $('#veh_id').append('<option value="'+veh.id+'">'+veh.num_plate+'</option>');
+            });
         });
     });
 </script>
